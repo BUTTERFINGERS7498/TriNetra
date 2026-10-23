@@ -1,0 +1,38 @@
+# Overlay for the PRODUCTION crAPI stack.
+#
+# crAPI's own compose hardcodes container_name and host ports on every
+# service. To run crAPI twice (prod + shadow) those must be cleared, or the
+# two stacks collide on globally-unique container names and host ports.
+# `!reset` (Docker Compose 2.24+) removes the inherited value so Compose
+# falls back to project-prefixed names (crapi-prod-<service>-1) and no host
+# port is published — all access goes through the defender gateway.
+#
+# The web entry point also joins the shared "defender-net" network with the
+# alias "crapi-web-prod" so the gateway can reach it by that name.
+#
+# Launch with:
+#   docker compose -p crapi-prod \
+#     -f crapi/upstream/docker-compose.yml -f crapi/override.prod.yml up -d
+
+services:
+  crapi-identity:   { container_name: !reset null, ports: !reset [] }
+  crapi-community:  { container_name: !reset null, ports: !reset [] }
+  crapi-workshop:   { container_name: !reset null, ports: !reset [] }
+  crapi-chatbot:    { container_name: !reset null, ports: !reset [] }
+  postgresdb:       { container_name: !reset null, ports: !reset [] }
+  mongodb:          { container_name: !reset null, ports: !reset [] }
+  chromadb:         { container_name: !reset null, ports: !reset [] }
+  mailhog:          { container_name: !reset null, ports: !reset [] }
+  api.mypremiumdealership.com: { container_name: !reset null, ports: !reset [] }
+
+  crapi-web:
+    container_name: !reset null
+    ports: !reset []
+    networks:
+      default: {}
+      defender-net:
+        aliases: [crapi-web-prod]
+
+networks:
+  defender-net:
+    external: true
