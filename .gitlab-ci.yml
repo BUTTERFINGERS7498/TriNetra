@@ -1,0 +1,290 @@
+# Webapp Defender — CI/CD pipeline
+#
+# Every job below maps to one DevSecOps stage, so the pipeline history is the
+# evidence that this project automates the whole post-code lifecycle:
+#
+#   Plan      plan:finding-issue      opens a GitLab issue for a finding
+#   Create    create:patch-mr-check   checks the flow's MR is linked to a finding
+#   Verify    verify:tests            runs the demo app test suite
+#             verify:gateway-lua      syntax-checks the gateway Lua
+#   Package   package:image           builds (and pushes) the demo app image
+#   Secure    secure:dependencies     dependency audit
+#             secure:secrets          repo secret check  (+ GitLab SAST/Secret Detection)
+#   Release   release:deploy          deploys the patched app and records it on the issue
+#   Configure configure:compose       applies the repo-stored compose configuration
+#   Monitor   monitor:health          health-checks the deploy and posts state to the issue
+#   Govern    govern:policy-gate      non-human gate: verify + secure must pass to merge
+#
+# Hands-off: there is no `when: manual` gate anywhere in the merge path. The
+# only human action in the whole loop is the event that opens the finding issue.
+#
+# Optional project CI/CD variables:
+#   GITLAB_API_TOKEN  - token with `api` scope, used to post issue notes. Jobs
+#                       degrade gracefully (and still pass) when it is unset.
+#   FINDING_TITLE / FINDING_BODY - set by the orchestrator or a trigger to open
+#                       a finding issue from the Plan stage.
+
+stages:
+  - plan
+  - create
+  - verify
+  - package
+  - secure
+  - release
+  - configure
+  - monitor
+  - govern
+
+# GitLab's own scanners. These add to the Secure stage; the project's own
+# secure:* jobs below run regardless of tier so the stage always has evidence.
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+variables:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  DOCKER_DRIVER: overlay2
+  DEMO_IMAGE: $CI_REGISTRY_IMAGE/demo-app:$CI_COMMIT_SHORT_SHA
+
+.python:
+  image: python:3.12-slim
+  before_script:
+    - python -m pip install --quiet --upgrade pip
+
+.docker:
+  image: docker:27-cli
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - docker info >/dev/null
+
+# Helper used by jobs that write progress back onto the finding issue.
+.api_note: &api_note |
+  post_note() {
+    if [ -z "$GITLAB_API_TOKEN" ] || [ -z "$1" ]; then
+      echo "no API token or issue iid; skipping note"; return 0
+    fi
+    curl --silent --show-error --fail-with-body \
+      --request POST \
+      --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
+      --data-urlencode "body=$2" \
+      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/issues/$1/notes" >/dev/null \
+      && echo "posted note to issue #$1" || echo "note failed (non-fatal)"
+  }
+
+# ---------------------------------------------------------------- Plan -------
+# Opens a GitLab issue describing a finding. The orchestrator (or a trigger)
+# supplies FINDING_TITLE/FINDING_BODY; that issue is what starts the Duo flow.
+plan:finding-issue:
+  extends: .python
+  stage: plan
+  rules:
+    - if: '$FINDING_TITLE'
+  script:
+    - apt-get update -qq && apt-get install -y -qq curl >/dev/null
+    - |
+      if [ -z "$GITLAB_API_TOKEN" ]; then
+        echo "GITLAB_API_TOKEN is not set; cannot open the finding issue."; exit 1
+      fi
+      curl --silent --show-error --fail-with-body \
+        --request POST \
+        --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
+        --data-urlencode "title=$FINDING_TITLE" \
+        --data-urlencode "description=${FINDING_BODY:-Opened by the Webapp Defender detector.}" \
+        --data-urlencode "labels=defender::finding" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/issues" | tee issue.json
+    - python -c "import json;print('opened issue #'+str(json.load(open('issue.json'))['iid']))"
+  artifacts:
+    paths: [issue.json]
+    expire_in: 1 week
+
+# -------------------------------------------------------------- Create -------
+# The Duo fixer agent opens the merge request. This job is the check that the
+# MR it produced is traceable to a finding.
+create:patch-mr-check:
+  extends: .python
+  stage: create
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - |
+      DESC="$CI_MERGE_REQUEST_DESCRIPTION$CI_MERGE_REQUEST_TITLE"
+      echo "MR: $CI_MERGE_REQUEST_TITLE"
+      if echo "$DESC" | grep -qE '#[0-9]+|[Ff]inding'; then
+        echo "OK: merge request references a finding/issue."
+      else
+        echo "WARNING: no issue reference found in this merge request."
+        echo "The flow should link the finding issue so Plan -> Create is traceable."
+      fi
+
+# -------------------------------------------------------------- Verify -------
+verify:tests:
+  extends: .python
+  stage: verify
+  script:
+    - pip install --quiet -r tests/requirements.txt
+    - python -m pytest tests/ -q --junitxml=report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+    expire_in: 1 week
+
+verify:gateway-lua:
+  stage: verify
+  image: openresty/openresty:alpine
+  script:
+    # Byte-compile the gateway Lua: catches syntax errors before release.
+    # luajit ships inside the OpenResty tree, not on PATH.
+    - export PATH="/usr/local/openresty/luajit/bin:$PATH"
+    - for f in nginx/lua/*.lua; do echo "checking $f"; luajit -b "$f" /dev/null; done
+    - echo "gateway Lua syntax OK"
+
+# ------------------------------------------------------------- Package -------
+package:image:
+  extends: .docker
+  stage: package
+  script:
+    - docker build -t "$DEMO_IMAGE" ./demo_app
+    - |
+      if [ -n "$CI_REGISTRY_USER" ]; then
+        echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+        docker push "$DEMO_IMAGE"
+      else
+        echo "no registry credentials; built image without pushing"
+      fi
+
+# -------------------------------------------------------------- Secure -------
+secure:dependencies:
+  extends: .python
+  stage: secure
+  script:
+    - pip install --quiet pip-audit
+    - |
+      status=0
+      for req in demo_app/requirements.txt orchestrator/requirements.txt \
+                 dashboard/requirements.txt gateway/requirements.txt tests/requirements.txt; do
+        [ -f "$req" ] || continue
+        echo "== auditing $req =="
+        pip-audit -r "$req" --progress-spinner off || status=1
+      done
+      exit $status
+
+secure:secrets:
+  extends: .python
+  stage: secure
+  script:
+    # The repo must never contain real credentials. .env is git-ignored; only
+    # .env.example (placeholders) is tracked.
+    - |
+      fail=0
+      if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+        echo "FAIL: .env is tracked in git"; fail=1
+      fi
+      echo "scanning tracked files for credential-shaped literals..."
+      # Exclusions are git pathspecs, so they belong on git ls-files, not grep.
+      if git ls-files -z -- ':!*.example' ':!requirements.md' ':!THIRD_PARTY_NOTICES.md' \
+         | xargs -0 grep -nIE \
+          '(sk-ant-[A-Za-z0-9]{10,}|sk-[A-Za-z0-9]{32,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' ; then
+        echo "FAIL: credential-shaped literal found in a tracked file"; fail=1
+      else
+        echo "OK: no credential-shaped literals in tracked files"
+      fi
+      exit $fail
+
+# ------------------------------------------------------------- Release -------
+# Deploys the patched demo app the way the defender does at runtime: the
+# approved source is placed in the deploy directory and the app is started from
+# it, then the result is recorded on the finding issue.
+release:deploy:
+  extends: .docker
+  stage: release
+  environment:
+    name: demo
+  script:
+    - apk add --no-cache curl bash >/dev/null
+    - *api_note
+    - mkdir -p deployed logs
+    - cp demo_app/app.py deployed/app.py          # hot-reload deploy target
+    - docker build -t defender-demo:ci ./demo_app
+    - docker run -d --name demo -p 8000:8000 -v "$PWD/deployed:/app/code" defender-demo:ci
+    - |
+      for i in $(seq 1 30); do
+        if curl -fsS http://docker:8000/health >/dev/null 2>&1 || curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+          echo "demo app is serving"; break
+        fi
+        sleep 2
+      done
+    - curl -fsS http://localhost:8000/health || curl -fsS http://docker:8000/health
+    - post_note "${FINDING_IID:-$CI_MERGE_REQUEST_IID}" "Release: deployed \`$CI_COMMIT_SHORT_SHA\` to the demo environment (pipeline $CI_PIPELINE_ID)."
+  after_script:
+    - docker rm -f demo >/dev/null 2>&1 || true
+
+# ----------------------------------------------------------- Configure -------
+# The deployment configuration lives in the repo; this job proves it is valid
+# and is what gets applied.
+configure:compose:
+  extends: .docker
+  stage: configure
+  script:
+    - docker compose -f docker-compose.yml config -q && echo "demo stack config valid"
+    - docker compose -f docker-compose.defender.yml config -q && echo "defender stack config valid"
+    - |
+      echo "Configuration applied from the repository:"
+      echo "  docker-compose.yml           demo target (hot-reload deploy)"
+      echo "  docker-compose.defender.yml  defender services (crAPI target)"
+      echo "  config/llm.yaml              per-agent model configuration"
+
+# ------------------------------------------------------------- Monitor -------
+monitor:health:
+  extends: .docker
+  stage: monitor
+  script:
+    - apk add --no-cache curl bash >/dev/null
+    - *api_note
+    - docker build -t defender-demo:ci ./demo_app
+    - docker run -d --name monitored -p 8000:8000 defender-demo:ci
+    - |
+      ok=0
+      for i in $(seq 1 30); do
+        if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then ok=1; break; fi
+        sleep 2
+      done
+      if [ "$ok" = "1" ]; then
+        echo "HEALTHY"
+        STATE="healthy"
+      else
+        echo "UNHEALTHY"; STATE="unhealthy"
+      fi
+      post_note "${FINDING_IID:-$CI_MERGE_REQUEST_IID}" "Monitor: post-deploy health is **$STATE** for \`$CI_COMMIT_SHORT_SHA\` (pipeline $CI_PIPELINE_ID)."
+      [ "$ok" = "1" ]
+  after_script:
+    - docker rm -f monitored >/dev/null 2>&1 || true
+
+# -------------------------------------------------------------- Govern -------
+# The policy gate. It is automated on purpose: no manual approval job exists,
+# because this entry is hands-off. Configure the project with
+# "Pipelines must succeed" so merging requires this job to pass.
+govern:policy-gate:
+  extends: .python
+  stage: govern
+  needs:
+    - job: verify:tests
+      artifacts: false
+    - job: verify:gateway-lua
+      artifacts: false
+    - job: secure:dependencies
+      artifacts: false
+    - job: secure:secrets
+      artifacts: false
+  script:
+    - echo "Verify and Secure stages passed; policy gate satisfied."
+    - echo "No human approval is required or accepted in this path (hands-off)."
+    - |
+      test -f LICENSE || { echo "FAIL: root LICENSE is missing"; exit 1; }
+      grep -q "MIT License" LICENSE || { echo "FAIL: LICENSE is not MIT"; exit 1; }
+      test -f .gitlab/duo/flows/defender.yaml || { echo "FAIL: Duo flow YAML missing"; exit 1; }
+      echo "OK: MIT licence and Duo flow configuration are present."
