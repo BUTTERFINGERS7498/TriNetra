@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "webapp-defender": {
+      "command": "python",
+      "args": ["mcp/defender_server.py"],
+      "env": {
+        "REDIS_URL": "redis://localhost:6379/0",
+        "REDIS_PASSWORD": "",
+        "SHADOW_LOG": "logs/shadow.log"
+      }
+    }
+  }
+}
