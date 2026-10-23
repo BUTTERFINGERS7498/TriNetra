@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Webapp Defender</title>
+<style>
+  :root {
+    --bg: #0e1116; --panel: #161b22; --line: #263040; --text: #e6edf3;
+    --muted: #8b98a9; --accent: #4f9dff; --ok: #3fb950; --warn: #d29922; --bad: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.5 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+         background: var(--bg); color: var(--text); }
+  header { padding: 14px 20px; border-bottom: 1px solid var(--line); display: flex;
+           align-items: center; gap: 12px; }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  .wrap { display: grid; grid-template-columns: 1fr 360px; gap: 16px; padding: 16px; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em;
+              color: var(--muted); margin: 0 0 10px; }
+  .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 1100px) { .board { grid-template-columns: repeat(2, 1fr); } }
+  .col h3 { font-size: 12px; margin: 0 0 8px; display: flex; justify-content: space-between; }
+  .col .count { color: var(--muted); }
+  .card { background: #0f141b; border: 1px solid var(--line); border-radius: 8px;
+          padding: 8px 10px; margin-bottom: 8px; }
+  .card .t { font-weight: 600; font-size: 13px; }
+  .card .meta { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .sev { display: inline-block; padding: 0 6px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .sev.low { background: #1c2b1c; color: var(--ok); }
+  .sev.medium { background: #2b2616; color: var(--warn); }
+  .sev.high, .sev.critical { background: #2b1818; color: var(--bad); }
+  .stage-detected h3 { color: var(--accent); }
+  .stage-fixing h3 { color: var(--warn); }
+  .stage-reviewing h3 { color: #a371f7; }
+  .stage-deployed h3 { color: var(--ok); }
+  .stage-rejected h3 { color: var(--bad); }
+  button { background: #21262d; color: var(--text); border: 1px solid var(--line);
+           border-radius: 6px; padding: 3px 8px; font-size: 11px; cursor: pointer; margin-top: 6px; }
+  button:hover { border-color: var(--accent); }
+  .log { font: 12px/1.5 ui-monospace, "Cascadia Code", Consolas, monospace;
+         height: 320px; overflow-y: auto; }
+  .log .row { padding: 2px 0; border-bottom: 1px solid #1b222c; }
+  .log .k { color: var(--accent); }
+  .pill { font-size: 11px; color: var(--muted); }
+  .sess { font: 12px ui-monospace, monospace; display: flex; justify-content: space-between;
+          padding: 3px 0; border-bottom: 1px solid #1b222c; }
+  .dot { height: 8px; width: 8px; border-radius: 50%; background: var(--ok); display: inline-block; }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="live"></span>
+  <h1>Webapp Defender</h1>
+  <span class="sub">decoy routing &middot; exploit detection &middot; automated patch pipeline</span>
+</header>
+
+<div class="wrap">
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="panel">
+      <h2>Patch pipeline</h2>
+      <div class="board" id="board"></div>
+    </div>
+    <div class="panel">
+      <h2>Live activity</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="panel">
+      <h2>Sessions routed to shadow</h2>
+      <div id="sessions"><span class="pill">none yet</span></div>
+    </div>
+    <div class="panel">
+      <h2>Scaling</h2>
+      <div id="scale"><span class="pill">waiting for orchestrator…</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGES = ["detected", "fixing", "reviewing", "deployed", "rejected"];
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+async function refreshBoard() {
+  const r = await fetch("/api/pipeline"); const data = await r.json();
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  for (const stage of STAGES) {
+    const items = (data.board[stage] || []);
+    const col = el("div", "col stage-" + stage);
+    col.appendChild(el("h3", null, `<span>${stage}</span><span class="count">${items.length}</span>`));
+    for (const it of items) {
+      const card = el("div", "card");
+      card.appendChild(el("div", "t", escapeHtml(it.title || "(untitled)")));
+      const sev = it.severity || "low";
+      card.appendChild(el("div", "meta",
+        `<span class="sev ${sev}">${sev}</span> ${escapeHtml(it.vuln_class || "")} · ${escapeHtml(it.endpoint || "")}`));
+      if (it.explanation) card.appendChild(el("div", "meta", escapeHtml(it.explanation.slice(0, 160))));
+      if (it.stage === "reviewing" && it.pending_deploy) {
+        card.appendChild(el("div", "meta", "⏸ awaiting human approval"));
+        const a = el("button", null, "Approve & deploy");
+        a.onclick = () => approveItem(it.id);
+        card.appendChild(a);
+      }
+      if (it.stage === "deployed") {
+        const b = el("button", null, "Roll back");
+        b.onclick = () => rollback(it.id);
+        card.appendChild(el("div", "meta", "rollback: <code>" + escapeHtml(it.rollback_cmd || "n/a") + "</code>"));
+        card.appendChild(b);
+      }
+      col.appendChild(card);
+    }
+    board.appendChild(col);
+  }
+}
+
+async function refreshSessions() {
+  const r = await fetch("/api/sessions"); const data = await r.json();
+  const box = document.getElementById("sessions");
+  if (!data.shadowed.length) { box.innerHTML = '<span class="pill">none yet</span>'; return; }
+  box.innerHTML = "";
+  for (const s of data.shadowed) {
+    box.appendChild(el("div", "sess", `<span>${escapeHtml(s.session)}</span><span>score ${s.score}</span>`));
+  }
+}
+
+async function rollback(id) {
+  await fetch("/api/rollback/" + id, { method: "POST" });
+  refreshBoard();
+}
+
+async function approveItem(id) {
+  await fetch("/api/approve/" + id, { method: "POST" });
+  refreshBoard();
+}
+
+function addLog(ev) {
+  const log = document.getElementById("log");
+  const when = new Date(parseFloat(ev.ts) * 1000).toLocaleTimeString();
+  const msg = ev.msg || JSON.stringify(ev);
+  const row = el("div", "row", `<span class="pill">${when}</span> <span class="k">${escapeHtml(ev.kind)}</span> ${escapeHtml(msg)}`);
+  log.insertBefore(row, log.firstChild);
+  while (log.childNodes.length > 300) log.removeChild(log.lastChild);
+
+  if (ev.kind === "scale") {
+    document.getElementById("scale").innerHTML =
+      `<div class="sess"><span>fixer workers</span><span>${ev.fix_workers} (queue ${ev.fix_queue})</span></div>` +
+      `<div class="sess"><span>reviewer workers</span><span>${ev.review_workers} (queue ${ev.review_queue})</span></div>`;
+  }
+  if (["detected","fixing","reviewing","deployed","rejected","rollback"].includes(ev.kind)) refreshBoard();
+  if (ev.kind === "shadow_route") refreshSessions();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+function connect() {
+  const es = new EventSource("/api/stream");
+  es.onopen = () => document.getElementById("live").style.background = "var(--ok)";
+  es.onerror = () => document.getElementById("live").style.background = "var(--bad)";
+  es.onmessage = (e) => { try { addLog(JSON.parse(e.data)); } catch (_) {} };
+}
+
+refreshBoard(); refreshSessions(); connect();
+setInterval(refreshSessions, 8000);
+</script>
+</body>
+</html>
