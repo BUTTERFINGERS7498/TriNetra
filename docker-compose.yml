@@ -1,0 +1,80 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  app-prod:
+    build: ./demo_app
+    environment:
+      APP_ROLE: prod
+      APP_LOG_DIR: /app/logs
+    volumes:
+      - ./logs:/app/logs
+      - ./deployed:/app/code           # hot-reloaded production code
+    restart: unless-stopped
+
+  app-shadow:
+    build: ./demo_app
+    environment:
+      APP_ROLE: shadow
+      APP_LOG_DIR: /app/logs
+    volumes:
+      - ./logs:/app/logs
+      - ./fork:/app/code               # the fork the fixer edits
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile       # OpenResty (nginx + Lua) gateway
+    environment:
+      PROD_UPSTREAM: app-prod:8000
+      SHADOW_UPSTREAM: app-shadow:8000
+      SHADOW_THRESHOLD: "15"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      SHADOW_REQUEST_LOG: /var/log/defender/shadow.log
+    volumes:
+      - ./logs:/var/log/defender          # shared with the orchestrator's /app/logs
+    ports:
+      - "8080:8080"                       # the only public entry point
+    depends_on: [redis, app-prod, app-shadow]
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      TARGET_URI: ${TARGET_URI:-}
+      TARGET_KEY: ${TARGET_KEY:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-}
+      LLM_CONFIG: /app/config/llm.yaml
+      SHADOW_LOG: /app/logs/shadow.log
+      FORK_DIR: /app/fork
+      DEPLOY_DIR: /app/deployed
+      PATCH_DIR: /app/patches
+      DETECTOR_INTERVAL: "20"
+      MIN_WORKERS: "1"
+      MAX_WORKERS: "4"
+    volumes:
+      - ./logs:/app/logs
+      - ./fork:/app/fork
+      - ./deployed:/app/deployed
+      - ./patches:/app/patches
+    depends_on: [redis]
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "3000:3000"
+    depends_on: [redis]
+    restart: unless-stopped
