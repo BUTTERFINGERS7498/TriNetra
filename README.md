@@ -1,216 +1,274 @@
-# Webapp Defender
+<div align="center">
 
-An AI-driven defensive system for web applications, with the whole post-code
-lifecycle automated on GitLab.
+# 🔱 TriNetra
 
-It sits in front of your app, recognises hostile traffic, quietly diverts
-attackers to a decoy copy, works out which weakness they are going after, and
-then drives a **hands-off** remediation loop — finding issue → patch merge
-request → review → green pipeline → deploy — with no human approval in the
-middle. All of it is watchable live on a dashboard and in GitLab.
+### *The third eye for your web application*
 
-Licensed under the [MIT License](LICENSE). Third-party components keep their
-own licences, see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+**Sees the attacker. Moves them somewhere harmless. Closes the hole they came for.**
 
-## How it works
+[![License: MIT](https://img.shields.io/badge/License-MIT-00B894.svg)](LICENSE)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED.svg?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![OpenResty](https://img.shields.io/badge/Gateway-nginx%20%2B%20Lua-009639.svg?logo=nginx&logoColor=white)](https://openresty.org/)
+[![GitLab Duo](https://img.shields.io/badge/GitLab-Duo%20Agent%20Platform-FC6D26.svg?logo=gitlab&logoColor=white)](https://docs.gitlab.com/user/duo_agent_platform/)
+[![Defensive Security](https://img.shields.io/badge/Security-Defensive-8E44AD.svg?logo=shieldsdotio&logoColor=white)](#-safety-model)
+
+</div>
+
+---
+
+## The idea
+
+Most defences **block** an attacker. Blocking tells them they were caught, so
+they adapt — and every false positive hits a real customer.
+
+TriNetra does something quieter. It watches every session, and the moment one
+starts behaving like an attack it is **silently moved to a decoy** — a perfect
+copy of your app. The attacker keeps probing a system that looks real and
+isn't. Meanwhile TriNetra studies exactly what they were reaching for, writes
+the patch, has a second model tear that patch apart, and ships the fix.
+
+Three agents. One eye that never blinks.
+
+| | Agent | What it does |
+|:--:|---|---|
+| 👁️ | **Detector** | Reads the decoy's traffic and names the real weakness |
+| 🔨 | **Fixer** | Writes a minimal patch, sandboxed to the app's source |
+| ⚖️ | **Reviewer** | A *different* model that hunts the patch for backdoors |
+
+---
+
+## It actually works — here's a verified run
+
+A real end-to-end run on the bundled demo app, start to finish:
 
 ```
-          ┌───────────────┐
- traffic ─▶│    gateway    │ nginx + Lua. Scores each session (brute force,
-          │  (port 8080)  │ injection, enumeration, scanning) and trips
-          └──────┬────────┘ honeypots. Real users pass straight through.
-       low score │ high score / honeypot hit
-          ┌───────▼──────┐    ┌──────────────┐
-          │  app-prod    │    │  app-shadow  │  decoy; attackers land here
-          └──────────────┘    └──────┬───────┘
-                                     │ gateway logs every shadowed request
-                              ┌──────▼─────────────────────────────┐
-                              │         orchestrator                │
-                              │  detector → fixer → reviewer         │
-                              │  (job queue, crash recovery, scaling)│
-                              └──────┬─────────────────────────────┘
-                                     │ events + pipeline state (Redis)
-                     ┌───────────────┴───────────────┐
-              ┌──────▼───────┐              ┌────────▼─────────┐
-              │  dashboard   │              │  GitLab Duo flow │
-              │  (port 3000) │              │  issue → MR →    │
-              └──────────────┘              │  review → deploy │
-                                            └──────────────────┘
+① ATTACK      sqlmap UA + /.env probe + 6 failed logins + 14-ID enumeration
+                                    ↓  threat score 162 — threshold is 15
+② DIVERTED    session silently routed to the decoy;  a normal user scored 0
+                                    ↓  43 requests logged for analysis
+③ DETECTED    "SQL injection on /products/{id}"        (high)
+              "Sensitive data exposure on /.env"       (medium)
+                                    ↓
+④ REVIEWED    one patch REJECTED and sent back to the fixer ⚖️
+                                    ↓
+⑤ DEPLOYED    approved patch hot-reloaded into the running app
 ```
 
-### Components
+The patch the agent actually wrote:
+
+```python
+def _is_sensitive_path(path: str) -> bool:
+    """Block dotfiles (/.env, /.git, ...) and traversal so secrets are never served."""
+    decoded = unquote(unquote(path))        # defeats double-encoding
+    if "\x00" in decoded: return True       # null-byte check
+    # ... rejects any segment that is ".." or begins with "."
+```
+
+Verified on the live container afterwards:
+
+| Request | Before | After |
+|---|---|---|
+| `/.env` | incidental 404 | **explicit deny** |
+| `/.git/config` | incidental 404 | **explicit deny** |
+| `/products`, `/health` | 200 | **200 — still fine** |
+| Test suite | 10 passed | **10 passed, no regression** |
+
+> That rejection in step ④ is the point. The reviewer is a separate model with
+> an adversarial brief, and it sent a patch back rather than rubber-stamping it.
+
+---
+
+## How it fits together
+
+```
+           ┌──────────────────┐
+  traffic ─▶│  👁️  GATEWAY     │  nginx + Lua. Scores every session:
+           │    :8080         │  brute force, injection, enumeration,
+           └────────┬─────────┘  scanning — plus honeypot tripwires.
+                    │
+      looks normal  │  looks hostile  (or trips a honeypot → instant)
+         ┌──────────┴──────────┐
+         ▼                     ▼
+  ┌─────────────┐      ┌──────────────┐
+  │  PRODUCTION │      │  🕸️  DECOY   │   attacker lands here,
+  │  real users │      │   (shadow)   │   and never knows
+  └─────────────┘      └──────┬───────┘
+                              │ every shadowed request logged
+                    ┌─────────▼──────────────────────┐
+                    │        ORCHESTRATOR            │
+                    │  👁️ detect → 🔨 fix → ⚖️ review │
+                    │  queues · crash recovery · scaling
+                    └─────────┬──────────────────────┘
+                              │ Redis: findings, scores, events
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+      ┌───────────────┐             ┌────────────────────┐
+      │  📊 DASHBOARD │             │  🦊 GITLAB DUO     │
+      │     :3000     │             │  issue → MR →      │
+      │  live board   │             │  review → deploy   │
+      └───────────────┘             └────────────────────┘
+```
+
+<details>
+<summary><b>Component breakdown</b></summary>
 
 | Component | What it does |
-|-----------|--------------|
-| **gateway** | OpenResty (nginx + Lua) reverse proxy, the only public entry point. Scores every request, trips honeypot tripwires, and transparently routes flagged sessions to the shadow decoy. Logs shadowed traffic for the detector. |
-| **demo_app** | The app the defender protects and patches — a small shop-style API with nothing malicious baked in. One image runs as both `app-prod` and `app-shadow`. |
-| **detector** | Reads the shadow traffic log, de-duplicates it, and classifies which requests represent a real weakness. Each finding opens a pipeline item (and a GitLab issue). |
-| **fixer** | Reads the source in its sandboxed fork and proposes a minimal patch. Sandboxed to `FORK_DIR`; may only modify files that already exist. |
-| **reviewer** | A second, independent model reviews correctness, scope, and safety. A static backdoor scan runs on every patch regardless of the verdict. |
-| **orchestrator** | Runs the detector on a schedule plus self-healing worker pools, with crash recovery and queue-depth scaling. |
-| **dashboard** | Live log, pipeline board (Detected → Fixing → Reviewing → Deployed), patch explanations, rollback. |
-| **GitLab Duo flow** | The same three jobs as a public custom flow, so the loop is visible as GitLab activity. See [`.gitlab/duo/flows/defender.yaml`](.gitlab/duo/flows/defender.yaml). |
-| **MCP server** | [`mcp/defender_server.py`](mcp/defender_server.py) exposes findings, pipeline state, and the shadow log to Duo. Registered in [`.gitlab/duo/mcp.json`](.gitlab/duo/mcp.json). |
+|---|---|
+| **Gateway** | OpenResty (nginx + Lua), the only public entry point. Scores each session, trips honeypot tripwires, routes flagged sessions to the decoy, and logs their traffic. Identity is the cookie *it* issues plus the real peer IP — client headers are never trusted. |
+| **Demo app** | The protected app: a small shop-style API with nothing malicious baked in. One image serves as both production and decoy. |
+| **Detector** | Reads the decoy traffic log, de-duplicates it, classifies the real weakness. Treats all log content as untrusted data. |
+| **Fixer** | Reads source in its sandboxed fork and proposes a minimal patch. May only modify files that already exist. |
+| **Reviewer** | A second, independent model. Adversarial brief: assume the author was manipulated and hunt for the backdoor. |
+| **Orchestrator** | Schedules the detector; runs self-healing worker pools with crash recovery and queue-depth scaling. |
+| **Dashboard** | Live event stream, pipeline board, patch explanations, one-click rollback. |
+| **GitLab Duo flow** | The same three agents as a public custom flow — [`.gitlab/duo/flows/defender.yaml`](.gitlab/duo/flows/defender.yaml). |
+| **MCP server** | [`mcp/defender_server.py`](mcp/defender_server.py) exposes findings, pipeline state and the decoy log to Duo. |
 
-## Requirements
+</details>
 
-- Docker and Docker Compose
-- An LLM endpoint for the agents. The default is an OpenAI-compatible
-  (Azure) deployment: set `TARGET_URI` and `AZURE_OPENAI_API_KEY` (or
-  `TARGET_KEY`). Per-agent models live in [`config/llm.yaml`](config/llm.yaml).
-- Python 3.12+ on the host if you want to run `simulate.py` or the tests
-- For the GitLab automation: a project on GitLab with Duo Agent Platform
-  available, and the **Developer + AI** role
+---
 
-## Quick start
+## 🚀 Quick start
 
 ```bash
-cp .env.example .env     # then fill in TARGET_URI and your key
-./start.sh               # macOS/Linux/Git Bash
-.\start.ps1              # Windows PowerShell
+cp .env.example .env     # add TARGET_URI + your key
+./start.sh               # macOS / Linux / Git Bash   (.\start.ps1 on Windows)
 ```
 
-Then:
-
-1. Open the dashboard: <http://localhost:3000>
-2. Drive traffic through the gateway and watch it work:
-   ```bash
-   python simulate.py
-   ```
-
-Normal sessions stay on production. The hostile session crosses the scoring
-threshold (or trips a honeypot), is moved to the shadow decoy, and its activity
-flows through detect → fix → review → deploy on the dashboard.
-
-`start.sh` resets the fork from the pristine app, rebuilds, and starts the
-stack. The demo app is Python, so an approved patch is **hot-reloaded** into
-the running app with no restart.
-
-## Running the tests
+Open the dashboard at **<http://localhost:3000>**, then make some noise:
 
 ```bash
-pip install -r tests/requirements.txt
-python -m pytest tests/ -q
+python simulate.py
 ```
 
-This is the same suite the CI Verify stage runs, and it is what proves an
-agent's patch did not break the app before release.
+Watch a normal user sail through to production while the hostile session is
+scored, diverted, analysed, patched and deployed — live on the board.
 
-## GitLab automation
+```bash
+pip install -r tests/requirements.txt && python -m pytest tests/ -q
+```
 
-The post-code loop is not only local; it runs on GitLab so it is auditable.
+Those tests are the Verify gate: they are what proves an agent's patch didn't
+break the app before it ships.
 
-### Duo custom flow
+> **Requirements** — Docker + Compose, an OpenAI-compatible or Anthropic LLM
+> endpoint, and Python 3.12+ for the helper scripts.
 
-[`.gitlab/duo/flows/defender.yaml`](.gitlab/duo/flows/defender.yaml) defines
-three agents — detector, fixer, reviewer — chained
-`detector → fixer → reviewer → end`, written to the flow registry v1 schema
-(`environment: ambient`, `coding_environment: full`).
+---
 
-To enable it:
+## 🦊 GitLab automation
 
-1. In the project, turn on **custom flows** (Settings > GitLab Duo), and allow
-   external MCP tools if the flow should call the defender over MCP.
-2. Go to **AI > Flows** and add the flow, with **Configuration path** set to
-   `.gitlab/duo/flows/defender.yaml`. Make it public so judges/reviewers can
-   open it. You need Maintainer or Owner.
-3. Go to **AI > Triggers** > **New flow trigger** and add a **Work item**
-   trigger on *Created* (optionally filtered to the `defender::finding`
-   label), pointing at the flow. Issue creation is the only event needed.
-
-> Note: Duo triggers fire on work item, merge request, pipeline, mention, and
-> assign events. There is **no push trigger**, so the issue-created event is
-> the way to start this flow.
-
-### CI/CD pipeline
-
-[`.gitlab-ci.yml`](.gitlab-ci.yml) has one job per DevSecOps stage:
+The loop doesn't just run locally — it runs as GitLab activity, so every fix is
+auditable: **finding issue → merge request → green pipeline → merge → deploy**,
+with no human approval in the middle.
 
 | Stage | Job | Evidence |
 |---|---|---|
-| Plan | `plan:finding-issue` | Opens a GitLab issue for a finding |
-| Create | `create:patch-mr-check` | Checks the flow's MR is traceable to a finding |
-| Verify | `verify:tests`, `verify:gateway-lua` | Test suite + gateway Lua syntax check |
-| Package | `package:image` | Builds and pushes the demo app image |
-| Secure | `secure:dependencies`, `secure:secrets` + GitLab SAST/Secret Detection | Dependency audit, secret check |
-| Release | `release:deploy` | Deploys the patch and records it on the issue |
-| Configure | `configure:compose` | Applies the repo-stored compose configuration |
-| Monitor | `monitor:health` | Health-checks the deploy, posts state to the issue |
-| Govern | `govern:policy-gate` | Automated gate: Verify + Secure must pass to merge |
+| Plan | `plan:finding-issue` | Opens an issue for the finding |
+| Create | `create:patch-mr-check` | MR traceable to that finding |
+| Verify | `verify:tests`, `verify:gateway-lua` | Test suite + gateway syntax |
+| Package | `package:image` | Builds and pushes the image |
+| Secure | `secure:dependencies`, `secure:secrets` | Dep audit, secret scan (+ GitLab SAST) |
+| Release | `release:deploy` | Deploys, records it on the issue |
+| Configure | `configure:compose` | Applies repo-stored config |
+| Monitor | `monitor:health` | Health check posted back |
+| Govern | `govern:policy-gate` | Automated gate — no manual approval exists |
 
-Optional project CI/CD variables: `GITLAB_API_TOKEN` (scope `api`, for posting
-issue notes — jobs still pass without it), and `FINDING_TITLE` / `FINDING_BODY`
-to open a finding issue from the Plan stage.
+👉 Full walkthrough in **[GITLAB_SETUP.md](GITLAB_SETUP.md)**.
 
-**Hands-off:** there is no `when: manual` job anywhere in the merge path.
-Configure the project with *Pipelines must succeed* so the Govern gate is what
-allows a merge. `REQUIRE_HUMAN_APPROVAL` is `false` for this reason; the
-automated guards (sandbox path check, existing-files-only rule, static backdoor
-scan in both the fixer and the reviewer) remain in force.
+---
 
-## Configuration
+## 🛡️ Safety model
 
-- **Models** — per-agent model, effort, and token caps in `config/llm.yaml`.
-  All three agents currently run on the same deployment.
-- **Shadow threshold** — `SHADOW_THRESHOLD` on the gateway (default 15).
-- **Honeypots** — tripwire paths, canary tokens, and bait credentials in
-  `nginx/lua/honeypots.lua`. Any hit diverts the session immediately.
-- **Rate cap** — `RATE_CAP`, requests per IP per 10s before rate scoring.
-- **Scaling** — `MIN_WORKERS` / `MAX_WORKERS`; **cadence** — `DETECTOR_INTERVAL`.
-- **Spend caps** — `MAX_OPEN_ITEMS`, `JOB_BUDGET_PER_HOUR`.
+TriNetra is **defensive**. It recognises attack-shaped traffic and patches
+weaknesses; it never generates or carries out attacks.
 
-See [PATCH.md](PATCH.md) for the security hardening pass and its rationale,
-[AGENT.md](AGENT.md) for contributor rules, and [CONTEXT.md](CONTEXT.md) for the
-domain model.
+Because agents write code that reaches production, the guardrails are layered:
 
-## Optional: OWASP crAPI as the target
+- 🔒 **Sandboxed fixer** — confined to `FORK_DIR`, path-escape attempts rejected
+- 📄 **Existing files only** — blocks a planted new-file backdoor
+- 🔍 **Static backdoor scan** — runs in the fixer *and* the reviewer, independent
+  of the model's verdict: bypass headers, hardcoded secrets, dynamic execution,
+  disabled TLS, unconditional privilege grants
+- ⚖️ **Independent review** — a different model, adversarially briefed
+- 🧪 **Untrusted-data fencing** — decoy traffic is quoted as data, never
+  instructions, so planted text can't steer an agent
+- ↩️ **Reversible** — every deploy backs up the original and records a rollback
+- 🚫 **No ambient privilege** — the orchestrator never gets the host Docker socket
 
-Instead of the demo app you can protect [OWASP crAPI](https://github.com/OWASP/crAPI),
-a deliberately-vulnerable training API, run as two stacks (production and
-shadow decoy):
+See **[PATCH.md](PATCH.md)** for the hardening pass and the residual risks it
+doesn't close.
+
+> Treat TriNetra as a strong starting point, not a turnkey production control.
+> Review agent-proposed patches before trusting them in a real environment.
+
+---
+
+## ⚙️ Configuration
+
+| Knob | Where | Default |
+|---|---|---|
+| Per-agent models | `config/llm.yaml` | — |
+| Diversion threshold | `SHADOW_THRESHOLD` | `15` |
+| Honeypot tripwires | `nginx/lua/honeypots.lua` | paths, tokens, bait creds |
+| Rate ceiling | `RATE_CAP` | `40` req/IP/10s |
+| Worker scaling | `MIN_WORKERS` / `MAX_WORKERS` | `1` / `4` |
+| Detector cadence | `DETECTOR_INTERVAL` | `20s` |
+| Spend caps | `MAX_OPEN_ITEMS`, `JOB_BUDGET_PER_HOUR` | `20`, `40` |
+| Human approval | `REQUIRE_HUMAN_APPROVAL` | `false` (hands-off) |
+
+---
+
+## 🧪 Optional: OWASP crAPI as the target
+
+Prefer a realistic victim? Point TriNetra at
+[OWASP crAPI](https://github.com/OWASP/crAPI), run as production + decoy stacks:
 
 ```bash
-bash crapi/fetch.sh        # pulls crAPI's compose from upstream
-./start-crapi.sh           # network + both crAPI stacks + defender
+bash crapi/fetch.sh     # pulls crAPI's compose from upstream
+./start-crapi.sh        # shared network + both stacks + TriNetra
 ```
 
-This is resource-heavy (crAPI runs twice — budget 8 GB+ for Docker). crAPI is
-Apache-2.0 and is **fetched at setup, never vendored here**; its source is not
-copied into this repository. Because its services are compiled, the defender
-runs in `rebuild` deploy mode: an approved patch is written to the fork and the
-exact rebuild command is recorded on the dashboard.
+Resource-heavy (crAPI runs twice — budget 8 GB+). crAPI is Apache-2.0 and is
+**fetched at setup, never vendored**. Its services are compiled, so TriNetra
+runs in `rebuild` deploy mode and records the exact rebuild command instead of
+hot-reloading.
 
-## Safety notes
+---
 
-- The system is defensive. The gateway only *recognises* attack-shaped traffic
-  and honeypot hits; the agents read logs, read source, and propose patches.
-  Nothing here generates or carries out attacks.
-- The fixer is sandboxed to the fork directory and may only modify existing
-  files. Every patch is reviewed by a separate model **and** scanned for
-  backdoor patterns before deploy, and every deploy records a rollback command.
-- Treat this as a strong starting point, not a turnkey production control.
-  Review agent-proposed patches before trusting them in a real environment.
-
-## Layout
+## 📁 Layout
 
 ```
-config/llm.yaml              per-agent model configuration
-common/store.py              shared Redis state (scores, pipeline, events, queues)
-nginx/                       OpenResty gateway: nginx.conf, lua/defender.lua, lua/honeypots.lua
-demo_app/                    the protected app (prod + shadow)
-orchestrator/
-  llm.py                     shared model client
-  main.py                    scheduler + worker pools
-  agents/                    detector, fixer, reviewer
-dashboard/                   web UI on port 3000
-mcp/defender_server.py       MCP server exposing findings to Duo
-tests/                       demo app test suite (CI Verify stage)
-.gitlab/duo/flows/           Duo custom flow YAML
-.gitlab/duo/mcp.json         MCP client registration
-.gitlab-ci.yml               nine-stage pipeline
-simulate.py                  traffic generator for a live demo
-docker-compose.yml           demo target (default)
-docker-compose.defender.yml  defender services for the crAPI target
-start.sh / start.ps1         demo launcher
-start-crapi.sh / .ps1        crAPI launcher
+nginx/                   👁️  OpenResty gateway — scoring, honeypots, routing
+orchestrator/agents/     🔨  detector · fixer · reviewer
+demo_app/                🎯  the protected app (production + decoy)
+dashboard/               📊  live board on :3000
+mcp/defender_server.py   🔌  MCP server for GitLab Duo
+common/store.py          🧠  shared Redis state
+.gitlab/duo/flows/       🦊  Duo custom flow YAML
+.gitlab-ci.yml           ⚙️  nine-stage pipeline
+tests/                   🧪  demo app suite (Verify gate)
+simulate.py              💥  traffic generator for demos
 ```
+
+---
+
+## 📚 Docs
+
+| | |
+|---|---|
+| **[GITLAB_SETUP.md](GITLAB_SETUP.md)** | Step-by-step GitLab automation setup |
+| **[PATCH.md](PATCH.md)** | Security hardening pass and residual risks |
+| **[AGENT.md](AGENT.md)** | Rules for anyone (human or AI) changing this code |
+| **[CONTEXT.md](CONTEXT.md)** | Domain model and data flow |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | MIT + DCO sign-off |
+| **[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)** | Third-party licences |
+
+---
+
+<div align="center">
+
+**TriNetra** · MIT licensed · Built to watch, not to attack
+
+</div>
