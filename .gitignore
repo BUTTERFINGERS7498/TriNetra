@@ -1,0 +1,15 @@
+.env
+logs/*.log
+fork/
+deployed/
+patches/*.json
+patches/backups/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# crAPI is third-party (Apache-2.0) and fetched at setup time, never vendored.
+crapi/upstream/
+crapi/fork/
+
