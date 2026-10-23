@@ -1,0 +1,35 @@
+# Per-agent LLM configuration.
+#
+# Every agent talks through the shared client in orchestrator/llm.py.
+# When TARGET_URI and AZURE_OPENAI_API_KEY (or TARGET_KEY) are set, calls
+# go to that OpenAI-compatible endpoint. Otherwise the client uses Anthropic.
+# Model names below are deployment names on the configured Azure resource.
+# Pricing is informational only — the dashboard estimates spend from it.
+
+defaults:
+  provider: azure
+  base_url: ""            # empty => TARGET_URI from the environment
+  max_tokens: 16000
+  effort: high            # Anthropic only: low | medium | high | xhigh | max
+
+agents:
+  detector:
+    # Temporary: every agent is on grok-4.7.
+    model: grok-4.7
+    max_tokens: 8000
+    effort: medium
+
+  fixer:
+    model: grok-4.7
+    max_tokens: 32000
+    effort: high
+
+  reviewer:
+    model: grok-4.7
+    max_tokens: 16000
+    effort: high
+
+# Informational pricing, USD per 1M tokens. Unknown for this deployment,
+# so estimates stay at zero until the rate is filled in.
+pricing:
+  grok-4.7: { input: 0.0, output: 0.0 }
