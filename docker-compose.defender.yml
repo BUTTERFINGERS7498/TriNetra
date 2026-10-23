@@ -1,0 +1,96 @@
+# The defender services (no demo app) wired to protect the two crAPI
+# stacks. Use this INSTEAD of docker-compose.yml for the crAPI option.
+#
+# It joins the shared external "defender-net" network, points the gateway at
+# the crapi-web-prod / crapi-web-shadow aliases defined by the crAPI
+# overlays, and runs the agents in rebuild-deploy mode (crAPI's services are
+# compiled and run from images, so an approved patch is surfaced as a rebuild
+# command rather than hot-reloaded).
+#
+# Launch order is handled by start-crapi.sh / start-crapi.ps1.
+
+services:
+  redis:
+    image: redis:7-alpine
+    # Redis is NOT published to the host and sits only on the internal
+    # defender-net. To additionally require a password, set REDIS_PASSWORD in
+    # .env (the app services read it) and uncomment the command line below.
+    # command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    restart: unless-stopped
+    networks: [defender-net]
+
+  gateway:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile       # OpenResty (nginx + Lua) gateway
+    environment:
+      PROD_UPSTREAM: crapi-web-prod:80
+      SHADOW_UPSTREAM: crapi-web-shadow:80
+      SHADOW_THRESHOLD: "15"
+      RATE_CAP: "40"                       # requests/IP/10s before rate scoring kicks in
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      SHADOW_REQUEST_LOG: /var/log/defender/shadow.log
+    volumes:
+      - ./logs:/var/log/defender          # shared with the orchestrator's /app/logs
+    ports:
+      - "8080:8080"                       # the only public entry point
+    depends_on: [redis]
+    networks: [defender-net]
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      TARGET_URI: ${TARGET_URI:-}
+      TARGET_KEY: ${TARGET_KEY:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-}
+      LLM_CONFIG: /app/config/llm.yaml
+      SHADOW_LOG: /app/logs/shadow.log
+      FORK_DIR: /app/fork               # clone crAPI source here to enable patching
+      PATCH_DIR: /app/patches
+      DEPLOY_MODE: rebuild
+      REBUILD_CMD: "docker compose -p crapi-shadow -f crapi/upstream/docker-compose.yml -f crapi/override.shadow.yml up -d --build"
+      DETECTOR_INTERVAL: "20"
+      MIN_WORKERS: "1"
+      MAX_WORKERS: "4"
+      SOURCE_GLOBS: "*.py,*.java,*.go,*.js,*.ts"
+      ALLOW_NEW_FILES: "false"           # fixer may only modify existing files
+      # Hands-off: no human approval in the loop. The automated gates still
+      # apply — the static backdoor scan (fixer + reviewer), the sandbox path
+      # guard, and the CI govern gate. Set to "true" for a non-demo deployment
+      # if you want a person to sign off before each deploy.
+      REQUIRE_HUMAN_APPROVAL: "false"
+      MAX_OPEN_ITEMS: "20"               # pipeline back-pressure under a flood
+      JOB_BUDGET_PER_HOUR: "40"          # hourly ceiling on fix jobs (LLM spend cap)
+    volumes:
+      - ./logs:/app/logs
+      - ./crapi/fork:/app/fork          # crAPI shadow source (optional, for the fixer)
+      - ./patches:/app/patches
+    depends_on: [redis]
+    networks: [defender-net]
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    ports:
+      - "3000:3000"
+    depends_on: [redis]
+    networks: [defender-net]
+    restart: unless-stopped
+
+networks:
+  defender-net:
+    external: true
