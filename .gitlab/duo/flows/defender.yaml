@@ -18,6 +18,8 @@
 #     human-readable identity of the flow lives in these comments
 #   * `response_schema_id` / `response_schema_version` are not supported on
 #     AgentComponent in custom flows, so agents return prose, not typed JSON
+#   * `max_cycles` is likewise rejected by the custom-flow schema
+#     ("disallowed additional property"), so it is omitted here
 #
 # NOTE ON TOOL NAMES: `toolset` entries use the snake_case tool names from the
 # Duo tools registry, which varies by GitLab version. The names below are the
@@ -41,7 +43,6 @@ components:
     toolset:
       - "get_issue"
       - "create_issue_note"
-    max_cycles: 20
     ui_log_events:
       - "on_agent_final_answer"
       - "on_tool_execution_failed"
@@ -58,7 +59,6 @@ components:
       - "get_issue"
       - "create_issue_note"
       - "create_merge_request"
-    max_cycles: 40
     ui_log_events:
       - "on_agent_final_answer"
       - "on_tool_execution_failed"
@@ -76,7 +76,6 @@ components:
       - "get_merge_request"
       - "create_merge_request_note"
       - "create_issue_note"
-    max_cycles: 25
     ui_log_events:
       - "on_agent_final_answer"
       - "on_tool_execution_failed"
