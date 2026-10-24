@@ -268,9 +268,13 @@ monitor:health:
     - docker build -t defender-demo:ci ./demo_app
     - docker run -d --name monitored -p 8000:8000 defender-demo:ci
     - |
+      # Under Docker-in-Docker the published port lives on the dind daemon
+      # host (hostname `docker`), not on this job container's localhost.
+      # Try both so the check works on either runner topology.
       ok=0
       for i in $(seq 1 30); do
-        if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then ok=1; break; fi
+        if curl -fsS http://docker:8000/health >/dev/null 2>&1 \
+           || curl -fsS http://localhost:8000/health >/dev/null 2>&1; then ok=1; break; fi
         sleep 2
       done
       if [ "$ok" = "1" ]; then
