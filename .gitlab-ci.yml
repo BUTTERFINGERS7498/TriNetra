@@ -1,4 +1,4 @@
-# Webapp Defender — CI/CD pipeline
+# TriNetra — CI/CD pipeline
 #
 # Every job below maps to one DevSecOps stage, so the pipeline history is the
 # evidence that this project automates the whole post-code lifecycle:
@@ -93,7 +93,7 @@ plan:finding-issue:
         --request POST \
         --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
         --data-urlencode "title=$FINDING_TITLE" \
-        --data-urlencode "description=${FINDING_BODY:-Opened by the Webapp Defender detector.}" \
+        --data-urlencode "description=${FINDING_BODY:-Opened by the TriNetra detector.}" \
         --data-urlencode "labels=defender::finding" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/issues" | tee issue.json
     - python -c "import json;print('opened issue #'+str(json.load(open('issue.json'))['iid']))"

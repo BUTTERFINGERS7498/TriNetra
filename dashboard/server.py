@@ -27,7 +27,7 @@ sys.path.append("/app")
 from common import store  # noqa: E402
 
 STATIC = Path(__file__).parent / "static"
-app = FastAPI(title="mahoraga-dashboard")
+app = FastAPI(title="trinetra-dashboard")
 
 
 @app.get("/")

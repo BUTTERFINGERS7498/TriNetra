@@ -29,7 +29,7 @@ The local repo is already initialised on `main` with everything staged.
 
 ```bash
 git remote add origin <your-provisioned-project-url>
-git commit -s -m "Webapp Defender: AI-driven defensive pipeline"
+git commit -s -m "TriNetra: AI-driven defensive pipeline"
 git push -u origin main
 ```
 

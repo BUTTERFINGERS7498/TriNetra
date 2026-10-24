@@ -1,6 +1,6 @@
 # CONTEXT.md
 
-The domain model and data flow behind the Webapp Defender. Read this with
+The domain model and data flow behind TriNetra. Read this with
 `AGENT.md` (which covers rules and conventions) before changing behavior.
 
 ## The problem

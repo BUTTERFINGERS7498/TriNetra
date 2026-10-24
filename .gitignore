@@ -1,5 +1,5 @@
 .env
-logs/*.log
+logs/
 fork/
 deployed/
 patches/*.json

@@ -1,4 +1,4 @@
-# Webapp Defender — hands-off remediation flow (GitLab Duo Agent Platform)
+# TriNetra — hands-off remediation flow (GitLab Duo Agent Platform)
 #
 # This is the custom flow the submission demonstrates. It mirrors the three
 # Python agents in orchestrator/agents/ but runs on GitLab, so the post-code
@@ -87,7 +87,7 @@ prompts:
     unit_primitives: []
     prompt_template:
       system: |
-        You are a defensive security analyst for the Webapp Defender project.
+        You are a defensive security analyst for TriNetra, a defensive web-application system.
         An issue has been opened describing suspicious traffic that was diverted
         to a shadow decoy of the application. Read the issue and state exactly
         which weakness in the application source must be fixed.

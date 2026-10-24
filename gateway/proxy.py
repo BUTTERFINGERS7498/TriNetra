@@ -44,7 +44,7 @@ def _log_shadow_request(record: dict) -> None:
     with SHADOW_REQUEST_LOG.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(record) + "\n")
 
-app = FastAPI(title="mahoraga-gateway")
+app = FastAPI(title="trinetra-gateway")
 _client = httpx.AsyncClient(timeout=30.0)
 _memory: dict[str, SessionMemory] = {}
 

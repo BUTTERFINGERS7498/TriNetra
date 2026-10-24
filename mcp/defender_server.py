@@ -1,4 +1,4 @@
-"""MCP server exposing the Webapp Defender's state to GitLab Duo.
+"""MCP server exposing TriNetra's state to GitLab Duo.
 
 Registered in `.gitlab/duo/mcp.json`. It lets a Duo flow ask the defender what
 it has seen instead of being handed a pre-baked prompt: the open findings, the
@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 PROTOCOL_VERSION = "2024-11-05"
-SERVER_INFO = {"name": "webapp-defender", "version": "1.0.0"}
+SERVER_INFO = {"name": "trinetra", "version": "1.0.0"}
 
 SHADOW_LOG = Path(os.environ.get("SHADOW_LOG", "logs/shadow.log"))
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")

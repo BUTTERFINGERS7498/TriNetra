@@ -1,16 +1,17 @@
-# AGENT.md
+# AGENT.md — TriNetra
 
 Guidance for anyone — human or AI — working on this repository. Read this
 before making changes.
 
 ## What this project is
 
-An AI-driven **defensive** security system for web apps. A gateway scores
-incoming traffic, transparently diverts attackers to a shadow decoy, and
-an autonomous detect → fix → review → deploy pipeline (powered by Claude)
-patches the weaknesses attackers probe. It is original, from-scratch code
-inspired by the *feature set* of the Mahoraga Webapp Defender — it shares
-none of that project's code.
+**TriNetra** ("third eye") is an AI-driven **defensive** security system for
+web applications. A gateway scores incoming traffic, transparently diverts
+attackers to a shadow decoy, and an autonomous detect → fix → review → deploy
+pipeline patches the weaknesses attackers probe.
+
+It is original, from-scratch code. It was inspired by the *feature set* of the
+Mahoraga Webapp Defender project, but shares none of that project's code.
 
 ## Golden rules
 

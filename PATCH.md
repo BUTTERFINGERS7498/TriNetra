@@ -1,6 +1,6 @@
 # PATCH.md — Defender hardening pass
 
-This records a round of security hardening applied to the Webapp Defender
+This records a round of security hardening applied to TriNetra
 after a red-team review of its own architecture. Each section states the
 problem, then the solution shipped. All changes are defensive.
 

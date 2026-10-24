@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "webapp-defender": {
+    "trinetra": {
       "command": "python",
       "args": ["mcp/defender_server.py"],
       "env": {

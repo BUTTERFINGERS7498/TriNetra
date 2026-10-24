@@ -271,4 +271,9 @@ simulate.py              💥  traffic generator for demos
 
 **TriNetra** · MIT licensed · Built to watch, not to attack
 
+<sub>Transcend Hackathon showcase for
+<a href="https://gitlab.com/sharmasarvagya110606">@sharmasarvagya110606</a> ·
+DevPost: parzival7498 ·
+<a href="https://gitlab.com/gitlab-ai-hackathon/transcend-october-2026/43660752/showcase/-/work_items/1">onboarding issue</a></sub>
+
 </div>
