@@ -29,6 +29,10 @@ stages:
   - create
   - verify
   - package
+  # GitLab's bundled SAST and Secret-Detection templates hard-code
+  # `stage: test`, so that stage must exist. It sits next to `secure` so the
+  # scanners run alongside this project's own Secure-stage jobs.
+  - test
   - secure
   - release
   - configure
