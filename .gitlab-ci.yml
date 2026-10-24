@@ -61,19 +61,10 @@ variables:
   before_script:
     - docker info >/dev/null
 
-# Helper used by jobs that write progress back onto the finding issue.
-.api_note: &api_note |
-  post_note() {
-    if [ -z "$GITLAB_API_TOKEN" ] || [ -z "$1" ]; then
-      echo "no API token or issue iid; skipping note"; return 0
-    fi
-    curl --silent --show-error --fail-with-body \
-      --request POST \
-      --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
-      --data-urlencode "body=$2" \
-      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/issues/$1/notes" >/dev/null \
-      && echo "posted note to issue #$1" || echo "note failed (non-fatal)"
-  }
+# Note: the helper that posts progress back onto the finding issue is defined
+# inline in each job that needs it (Release, Monitor). A YAML anchor is not
+# used here — GitLab treats a `.`-prefixed key as a hidden *job* and expects a
+# map, so anchoring a scalar onto one makes the pipeline config invalid.
 
 # ---------------------------------------------------------------- Plan -------
 # Opens a GitLab issue describing a finding. The orchestrator (or a trigger)
@@ -206,7 +197,18 @@ release:deploy:
     name: demo
   script:
     - apk add --no-cache curl bash >/dev/null
-    - *api_note
+    - |
+      post_note() {
+        if [ -z "$GITLAB_API_TOKEN" ] || [ -z "$1" ]; then
+          echo "no API token or issue iid; skipping note"; return 0
+        fi
+        curl --silent --show-error --fail-with-body \
+          --request POST \
+          --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
+          --data-urlencode "body=$2" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/issues/$1/notes" >/dev/null \
+          && echo "posted note to issue #$1" || echo "note failed (non-fatal)"
+      }
     - mkdir -p deployed logs
     - cp demo_app/app.py deployed/app.py          # hot-reload deploy target
     - docker build -t defender-demo:ci ./demo_app
@@ -219,7 +221,10 @@ release:deploy:
         sleep 2
       done
     - curl -fsS http://localhost:8000/health || curl -fsS http://docker:8000/health
-    - post_note "${FINDING_IID:-$CI_MERGE_REQUEST_IID}" "Release: deployed \`$CI_COMMIT_SHORT_SHA\` to the demo environment (pipeline $CI_PIPELINE_ID)."
+    # Block scalar: the message contains ": ", which YAML would otherwise
+    # parse as a mapping rather than a plain string.
+    - |
+      post_note "${FINDING_IID:-$CI_MERGE_REQUEST_IID}" "Release: deployed \`$CI_COMMIT_SHORT_SHA\` to the demo environment (pipeline $CI_PIPELINE_ID)."
   after_script:
     - docker rm -f demo >/dev/null 2>&1 || true
 
@@ -244,7 +249,18 @@ monitor:health:
   stage: monitor
   script:
     - apk add --no-cache curl bash >/dev/null
-    - *api_note
+    - |
+      post_note() {
+        if [ -z "$GITLAB_API_TOKEN" ] || [ -z "$1" ]; then
+          echo "no API token or issue iid; skipping note"; return 0
+        fi
+        curl --silent --show-error --fail-with-body \
+          --request POST \
+          --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
+          --data-urlencode "body=$2" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/issues/$1/notes" >/dev/null \
+          && echo "posted note to issue #$1" || echo "note failed (non-fatal)"
+      }
     - docker build -t defender-demo:ci ./demo_app
     - docker run -d --name monitored -p 8000:8000 defender-demo:ci
     - |
