@@ -111,6 +111,10 @@ prompts:
       user: |
         Analyse this finding and state the weakness to fix.
 
+        The GitLab project is `gitlab-ai-hackathon/transcend-october-2026/43660752/showcase`.
+        The issue and merge request tools need that project path; the goal
+        below may only carry an issue number.
+
         {{goal}}
     params:
       timeout: 300
@@ -146,6 +150,10 @@ prompts:
       user: |
         Implement and open a merge request for this confirmed weakness.
 
+        The GitLab project is `gitlab-ai-hackathon/transcend-october-2026/43660752/showcase`.
+        The issue and merge request tools need that project path; the goal
+        below may only carry an issue number.
+
         {{finding}}
     params:
       timeout: 900
@@ -178,6 +186,10 @@ prompts:
         Do not attempt to bypass that gate. Err on the side of rejecting.
       user: |
         Review the merge request produced for this patch.
+
+        The GitLab project is `gitlab-ai-hackathon/transcend-october-2026/43660752/showcase`.
+        The issue and merge request tools need that project path; the goal
+        below may only carry an issue number.
 
         {{patch_summary}}
     params:
