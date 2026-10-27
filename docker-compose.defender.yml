@@ -85,6 +85,9 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    volumes:
+      - ./patches:/app/patches:ro
+      - ./crapi/fork:/app/fork:ro
     ports:
       - "3000:3000"
     depends_on: [redis]

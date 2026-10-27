@@ -121,7 +121,7 @@ Verified on the live container afterwards:
 | **Fixer** | Reads source in its sandboxed fork and proposes a minimal patch. May only modify files that already exist. |
 | **Reviewer** | A second, independent model. Adversarial brief: assume the author was manipulated and hunt for the backdoor. |
 | **Orchestrator** | Schedules the detector; runs self-healing worker pools with crash recovery and queue-depth scaling. |
-| **Dashboard** | Live event stream, pipeline board, patch explanations, one-click rollback. |
+| **Operator workspace** | Findings, patch diffs, held approvals, delivery records, shadow sessions, live activity, and recorded recovery requests. See the [workspace guide](dashboard/README.md). |
 | **GitLab Duo flow** | The same three agents as a public custom flow — [`.gitlab/duo/flows/defender.yaml`](.gitlab/duo/flows/defender.yaml). |
 | **MCP server** | [`mcp/defender_server.py`](mcp/defender_server.py) exposes findings, pipeline state and the decoy log to Duo. |
 
@@ -136,7 +136,11 @@ cp .env.example .env     # add TARGET_URI + your key
 ./start.sh               # macOS / Linux / Git Bash   (.\start.ps1 on Windows)
 ```
 
-Open the dashboard at **<http://localhost:3000>**, then make some noise:
+Open **<http://localhost:3000>** and choose **Open workspace** (direct link: <http://localhost:3000/workspace/>), then make some noise:
+
+The [operator workspace](dashboard/README.md) includes an opt-in sample view at
+<http://localhost:3000/workspace/?preview=1> for reviewing the interface without live
+telemetry. Sample actions stay in the browser and never change application state.
 
 ```bash
 python simulate.py

@@ -8,6 +8,7 @@ __pycache__/
 *.pyc
 .venv/
 .pytest_cache/
+dashboard/node_modules/
 
 # crAPI is third-party (Apache-2.0) and fetched at setup time, never vendored.
 crapi/upstream/

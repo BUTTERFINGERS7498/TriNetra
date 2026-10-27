@@ -2,20 +2,20 @@
 .light-piece { --light-reveal: 1; --light-focus: 50%; --light-play-state: paused; }
 .light-piece[data-light-visible=true] { --light-play-state: var(--ambient-play-state, running); }
 body[data-light-document=hidden] .light-piece { --light-play-state: paused; }
-.light-current { fill: none; stroke: #a7caff; stroke-width: 1.2; stroke-linecap: round; stroke-dasharray: 3 97; stroke-dashoffset: 100; opacity: .6; filter: drop-shadow(0 0 4px #608eff); animation: light-transmission 11s linear infinite; animation-play-state: var(--light-play-state); }
-.light-current-two { stroke: #c0aaff; animation-delay: -6s; animation-duration: 14s; }
+.light-current { fill: none; stroke: #a7caff; stroke-width: 1.2; stroke-linecap: round; stroke-dasharray: 3 97; stroke-dashoffset: 100; opacity: .65; filter: drop-shadow(0 0 6px #608eff); animation: light-transmission 11s linear infinite; animation-play-state: var(--light-play-state); }
+.light-current-two { stroke: #c0aaff; animation-delay: -6s; animation-duration: 14s; filter: drop-shadow(0 0 6px #8c6cf1); }
 @keyframes light-transmission { to { stroke-dashoffset: -100; } }
-@keyframes optical-breathe { 0%,100% { opacity: .35; } 50% { opacity: .8; } }
+@keyframes optical-breathe { 0%,100% { opacity: .35; transform: translate(-50%,-50%) scale(0.95); } 50% { opacity: .85; transform: translate(-50%,-50%) scale(1.1); } }
 
 /* One luminous eye introduces the three agent perspectives. */
 .agents-section { padding-top: 16px; }
 .optical-study { position: relative; isolation: isolate; width: min(960px, 100%); margin: 0 auto 86px; pointer-events: none; }
-.optical-object { position: relative; background: #050507; }
-.optical-object > img { display: block; position: relative; width: 100%; height: auto; mix-blend-mode: screen; filter: brightness(calc(.76 + var(--light-reveal) * .3)); }
-.optical-halo { position: absolute; z-index: 0; inset: 2% 3% 6%; background: radial-gradient(ellipse at var(--light-focus) 50%, rgb(86 114 255 / 13%), transparent 59%); opacity: var(--light-reveal); }
+.optical-object { position: relative; background: var(--dark); border-radius: 12px; }
+.optical-object > img { display: block; position: relative; width: 100%; height: auto; mix-blend-mode: screen; filter: brightness(calc(.78 + var(--light-reveal) * .32)) contrast(1.05); }
+.optical-halo { position: absolute; z-index: 0; inset: 2% 3% 6%; background: radial-gradient(ellipse at var(--light-focus) 50%, rgb(86 114 255 / 16%), rgb(140 100 240 / 6%) 45%, transparent 62%); opacity: var(--light-reveal); }
 .optical-currents { position: absolute; inset: 0 0 auto; width: 100%; height: auto; aspect-ratio: 3; overflow: visible; }
-.optical-currents .light-current { stroke: url(#optical-spectrum); stroke-width: .8; opacity: .55; }
-.optical-core { position: absolute; left: 50.1%; top: 49.5%; transform: translate(-50%,-50%); width: 5px; height: 5px; border-radius: 50%; background: #e3f4ff; box-shadow: 0 0 12px #a0d9ff, 0 0 36px #5289fc, 0 0 68px 6px rgb(78 107 255 / 35%); animation: optical-breathe 7s ease-in-out infinite; animation-play-state: var(--light-play-state); }
+.optical-currents .light-current { stroke: url(#optical-spectrum); stroke-width: .8; opacity: .6; }
+.optical-core { position: absolute; left: 50.1%; top: 49.5%; transform: translate(-50%,-50%); width: 6px; height: 6px; border-radius: 50%; background: #e3f4ff; box-shadow: 0 0 14px #a0d9ff, 0 0 38px #5289fc, 0 0 72px 8px rgb(78 107 255 / 40%); animation: optical-breathe 7s ease-in-out infinite; animation-play-state: var(--light-play-state); }
 .optical-study figcaption { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-top: 21px; border-top: 1px solid #252d3b; color: #8a98b1; font: 8px/1.6 var(--mono); letter-spacing: 1.5px; }
 .optical-study figcaption > span:first-child { display: flex; align-items: center; gap: 9px; color: #a5b7d5; }
 .optical-study figcaption i { width: 4px; height: 4px; border-radius: 50%; background: #b2d6ff; box-shadow: 0 0 9px #6e9dff; }
@@ -42,21 +42,21 @@ body[data-light-document=hidden] .light-piece { --light-play-state: paused; }
 .safeguard-number, .safeguard-list > div > svg { color: #8b96b1; }.safeguard-list > div { border-color: #252832; }
 
 /* The ending opens onto an original landscape of optical fibres. */
-.closing-section { background: #06070c; padding-bottom: 40px; }
-.closing-atmosphere { background: radial-gradient(ellipse at var(--closing-x,50%) 85%, rgb(55 71 151 / 21%), transparent 58%), linear-gradient(180deg, #050507, transparent 40%); }
+.closing-section { background: var(--dark); padding-bottom: 40px; }
+.closing-atmosphere { background: radial-gradient(ellipse at var(--closing-x,50%) 85%, rgb(55 71 151 / 24%), transparent 58%), linear-gradient(180deg, var(--dark), transparent 40%); }
 .closing-stage { width: min(1440px, 120%); height: 310px; margin-top: 34px; left: 50%; margin-left: 0; transform: translateX(-50%); }
 .closing-plinth { display: none; }
-.light-terrain { position: absolute; top: 45px; width: 100%; aspect-ratio: 3; mask-image: linear-gradient(180deg, #000 38%, transparent 96%); -webkit-mask-image: linear-gradient(180deg, #000 38%, transparent 96%); opacity: .79; }
+.light-terrain { position: absolute; top: 45px; width: 100%; aspect-ratio: 3; mask-image: linear-gradient(180deg, #000 38%, transparent 96%); -webkit-mask-image: linear-gradient(180deg, #000 38%, transparent 96%); opacity: .85; }
 .light-terrain > img, .light-terrain > svg { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
 .light-terrain > img { filter: brightness(calc(.85 + var(--light-reveal) * .45)); }
 .light-terrain .light-current { stroke-width: .9; stroke-dasharray: 2 98; opacity: .7; animation-duration: 16s; }
-.closing-light-column { top: 62px; height: 150px; background: radial-gradient(ellipse at var(--light-focus) 50%, rgb(88 112 236 / 25%), transparent 64%); filter: blur(24px); }
-.closing-totem { top: 28px; }.closing-totem > svg { width: 31px; height: 51px; color: #d7e6ff; filter: drop-shadow(0 0 12px rgb(142 180 255 / 50%)); }
-.light-beacon { position: absolute; z-index: 3; top: 92px; left: 50%; width: 4px; height: 4px; border-radius: 50%; background: #e5f4ff; box-shadow: 0 0 13px 2px #94c5ff, 0 0 44px 11px rgb(97 128 255 / 38%); }
+.closing-light-column { top: 62px; height: 150px; background: radial-gradient(ellipse at var(--light-focus) 50%, rgb(88 112 236 / 28%), transparent 64%); filter: blur(24px); }
+.closing-totem { top: 28px; }.closing-totem > svg { width: 31px; height: 51px; color: #d7e6ff; filter: drop-shadow(0 0 16px rgb(142 180 255 / 60%)); }
+.light-beacon { position: absolute; z-index: 3; top: 92px; left: 50%; width: 4px; height: 4px; border-radius: 50%; background: #e5f4ff; box-shadow: 0 0 13px 2px #94c5ff, 0 0 44px 11px rgb(97 128 255 / 42%); }
 .light-beacon:after { content: ""; position: absolute; width: 140px; height: 1px; top: 1px; left: -68px; background: linear-gradient(90deg, transparent, #b7d5ff, transparent); }
 .closing-stage-label { margin-top: -36px; color: #9baac7; }
 .closing-content > p { color: #b0bcd1; }.closing-content .eyebrow { color: #a4b7d8; }
-.footer-base { background: #06080e; }
+.footer-base { background: var(--dark); }
 
 @media (max-width: 959px) { .optical-study { margin-bottom: 62px; }.containment-sculpture { width: 133%; }.closing-stage { height: 260px; }.closing-stage-label { margin-top: -20px; } }
 @media (max-width: 719px) {

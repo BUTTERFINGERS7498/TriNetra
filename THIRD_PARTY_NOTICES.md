@@ -34,3 +34,13 @@ Pulled at build time, each under its own license: `python:3.12-slim`,
 Declared in the per-service `requirements.txt` files and installed from PyPI
 at build time, each under its own license (FastAPI, uvicorn, httpx, redis,
 PyYAML, openai, anthropic).
+
+## Workspace development checks
+
+The workspace's DOM and CSS checks use jsdom and CSSTree, declared in
+`dashboard/package.json` and installed from npm under their MIT licenses.
+Python state-transition checks use fakeredis, declared in
+`tests/requirements.txt`, under its BSD 3-Clause license. These tools are
+development dependencies; their source is not vendored into this repository
+or included in the dashboard production image. Installed packages retain
+their own license files.

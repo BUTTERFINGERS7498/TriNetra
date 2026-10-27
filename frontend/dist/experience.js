@@ -105,6 +105,12 @@
       selectAgent(tabs[next].dataset.agentTab, true);
     });
   });
+  cards.forEach((card) => {
+    card.addEventListener("click", () => {
+      const role = card.dataset.role;
+      if (role) selectAgent(role);
+    });
+  });
   const compactRoles = window.matchMedia("(max-width: 719px)");
   const updateTabOrientation = () => document.querySelector(".agent-tabs").setAttribute("aria-orientation", compactRoles.matches ? "horizontal" : "vertical");
   compactRoles.addEventListener("change", updateTabOrientation);
@@ -137,18 +143,25 @@
   function drawField(time = 0) {
     if (!context || width < 1 || height < 1) return;
     context.clearRect(0, 0, width, height);
-    const count = width < 400 ? 12 : 20;
+    const count = width < 400 ? 14 : 24;
     const tone = body.dataset.scene === "reviewer" ? [183, 149, 231] :
       body.dataset.scene === "fixer" ? [133, 166, 240] : [158, 144, 223];
     for (let index = 0; index < count; index++) {
       const theta = index * 2.39996;
       const px = width * (.5 + Math.sin(theta) * .43);
-      const py = height * (.15 + (index / count) * .7) + Math.sin(time * .00018 + theta) * 6;
-      const strength = .1 + (Math.sin(time * .00035 + theta) + 1) * .07;
+      const py = height * (.12 + (index / count) * .76) + Math.sin(time * .00018 + theta) * 6;
+      const strength = .12 + (Math.sin(time * .00035 + theta) + 1) * .08;
       context.beginPath();
-      context.arc(px, py, index % 5 === 0 ? 1 : .6, 0, Math.PI * 2);
+      const radius = index % 4 === 0 ? 1.2 : 0.7;
+      context.arc(px, py, radius, 0, Math.PI * 2);
       context.fillStyle = "rgba(" + tone.join(",") + "," + strength.toFixed(2) + ")";
       context.fill();
+      if (index % 6 === 0) {
+        context.beginPath();
+        context.arc(px, py, radius * 3, 0, Math.PI * 2);
+        context.fillStyle = "rgba(" + tone.join(",") + "," + (strength * 0.25).toFixed(2) + ")";
+        context.fill();
+      }
     }
   }
   function sizeField() {
@@ -226,7 +239,7 @@
     }, { passive: true });
   }
   trackSurface(closing, "closing");
-  document.querySelectorAll(".routing-demo,.boundary-art").forEach((element) => trackSurface(element, "surface"));
+  document.querySelectorAll(".routing-demo,.boundary-art,.agent-card,.agent-explorer").forEach((element) => trackSurface(element, "surface"));
   document.querySelectorAll(".button").forEach((button) => {
     trackSurface(button, "button-light", (x, y) => {
       button.style.setProperty("--button-x", ((x - .5) * 5).toFixed(2) + "px");

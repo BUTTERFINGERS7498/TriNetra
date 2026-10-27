@@ -9,7 +9,8 @@ The detailed page plan, copy, accessibility criteria, and source-grounded produc
 From the repository root:
 
 ```sh
-python3 -m http.server 4173 --directory frontend/dist
+python3 frontend/tools/build-workspace.py
+python3 -m http.server 4173 --bind 127.0.0.1 --directory frontend/dist
 ```
 
 Open <http://localhost:4173>. No package installation, bundler, Docker, API credentials, or backend service is needed for this landing page. Stop the server with `Ctrl+C`.
@@ -18,23 +19,25 @@ This first review stays local, as requested. No frontend source or artwork was u
 
 ## Files and static deployment
 
-`dist/` is the standalone static site, containing its HTML, CSS, JavaScript, and local assets. Serve or publish the entire contents of that directory with any static host. There is no build command. Preserve relative asset paths when copying it.
+`dist/` is the standalone static site, containing its HTML, CSS, JavaScript, and local assets. Serve or publish the entire contents of that directory with any static host. The landing page needs no bundler. After changing the workspace source, run `python3 frontend/tools/build-workspace.py` to refresh the included workspace; `--check` verifies that it is current. Preserve relative asset paths when copying the site.
 
 `styles.css` defines the page design system and responsive layouts. `agents.css` owns the agent illustrations and artifact inspector. `experience.css` and `experience.js` add an autonomous nine-second guardian light sequence, a sparse canvas field, scroll reveals, and a keyboard-accessible agent explorer. The sculpture stays fixed: its third eye wakes, light travels along the trident, and a subtle sheen crosses the materials. The guardian remains a raster artwork with SVG and CSS lighting rather than a rigged 3D model. Use the visible motion control to pause ambient effects. System reduced-motion preferences disable the ambient motion by default. The closing section uses one illuminated horizon and a continuous black footer.
 
-The repository's application dashboard remains a separate service under `dashboard/`. This landing page does not replace that service or alter the Docker Compose setups.
+The workspace buttons in the desktop/mobile navigation, hero, closing section, and footer open `/workspace/`. The standalone static site includes the operator interface at that path. Without the backend, it shows its connection state and offers an explicit sample mode.
+
+The application service under `dashboard/` serves this landing page at `/` and the live operator workspace at `/workspace/` on port 3000. The Docker image includes the landing assets; API routes and read-only patch mounts keep their existing behavior.
 
 ## Demo limitations
 
 - Traffic, findings, patches, pipeline activity, and status indicators are illustrative sample data, not live security telemetry.
-- Workspace actions lead to a labeled product preview. The full workspace and backend integration are a later phase.
+- Workspace actions open the operator console. Its live data and operator actions require the running FastAPI/Redis stack. A static-only host supports the disconnected interface and explicit browser-local sample mode.
 - The landing page does not score requests, route traffic, invoke models, create GitLab work items, deploy patches, approve changes, restore files, or generate attacks.
 - Any documentation or onboarding view in this prototype explains the project; it does not provision an account or configure infrastructure.
 - Deployment and review copy reflects the current source: three separate agent roles currently share the configured model, compiled-service deployment requires an operator's rebuild command, and the existing dashboard's rollback control records intent rather than restoring files.
 
 ## Suggested review
 
-Review the hero at desktop and mobile widths, replay the traffic illustration, inspect each available sample pipeline stage, open the FAQ items, and follow the page actions. Check keyboard focus and reduced-motion behavior. Feedback on the guardian, typography, color balance, page rhythm, and preview clarity should guide the next design iteration before the full workspace is built.
+Review the hero at desktop and mobile widths, replay the traffic illustration, inspect each available sample pipeline stage, open the FAQ items, and follow the page actions. Check keyboard focus and reduced-motion behavior. Feedback on the guardian, typography, color balance, page rhythm, and preview clarity should guide the next design iteration alongside the separate operator workspace.
 
 ## First-version validation
 
