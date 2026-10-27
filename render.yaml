@@ -1,0 +1,27 @@
+# TriNetra — Render Blueprint (workspace API + Redis)
+# Landing/static also deploys to Vercel from frontend/dist.
+# Gateway diversion stack remains docker-compose locally.
+services:
+  - type: web
+    name: trinetra-workspace
+    runtime: docker
+    plan: free
+    dockerfilePath: ./dashboard/Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          name: trinetra-redis
+          type: keyvalue
+          property: connectionString
+      - key: PATCH_DIR
+        value: /tmp/patches
+      - key: FORK_DIR
+        value: /tmp/fork
+
+  - type: keyvalue
+    name: trinetra-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
