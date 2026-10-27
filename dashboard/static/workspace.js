@@ -192,21 +192,55 @@ function badge(value, label) {
     : "neutral";
   return `<span class="badge ${cls}">${escape(label || titleCase(value || "Unknown"))}</span>`;
 }
+const duration = (sec) => {
+  sec = Math.max(0, Math.floor(sec));
+  if (sec < 60) return `${sec}s`;
+  if (sec < 3600) return `${Math.floor(sec / 60)}m ${sec % 60}s`;
+  return `${Math.floor(sec / 3600)}h ${Math.floor((sec % 3600) / 60)}m`;
+};
+// Fixer and reviewer runs take minutes; show that an agent is actively working.
+const working = (it) =>
+  (it.stage === "fixing" || it.stage === "reviewing") && !pending(it) && !it.human_approved;
 function itemBadge(it) {
-  return badge(
-    it.stage === "deployed" && /rebuild with:/.test(it.deploy_note || "")
-      ? "pending"
-      : it.stage,
-    statusLabel(it),
+  const since = stamp(it.updated || it.created);
+  const timer =
+    working(it) && since
+      ? `<span class="live-timer" data-since="${since.getTime()}" title="Time since the last pipeline update"><i></i>${duration((Date.now() - since.getTime()) / 1000)}</span>`
+      : "";
+  return (
+    badge(
+      it.stage === "deployed" && /rebuild with:/.test(it.deploy_note || "")
+        ? "pending"
+        : it.stage,
+      statusLabel(it),
+    ) + timer
   );
+}
+function tickLive() {
+  $$(".live-timer[data-since]").forEach((el) => {
+    const text = duration((Date.now() - Number(el.dataset.since)) / 1000);
+    if (el.lastChild?.textContent !== text) el.lastChild.textContent = text;
+  });
+  if (syncTime && state.mode === "live" && state.connected && !state.stale)
+    $("#sync-status").textContent = `Live · updated ${duration(Date.now() / 1000 - syncTime)} ago`;
 }
 const empty = (name, title, description, action = "") =>
   `<div class="empty"><span class="empty-icon">${icon(name)}</span><h3>${escape(title)}</h3><p>${escape(description)}</p>${action}</div>`;
 function toast(message, error = false) {
   clearTimeout(toastTimeout);
-  $("#toasts").innerHTML =
+  const region = $("#toasts");
+  region.innerHTML =
     `<div class="toast ${error ? "error" : ""}">${icon(error ? "findings" : "check")}<span>${escape(message)}</span></div>`;
-  toastTimeout = setTimeout(() => $("#toasts").replaceChildren(), 5500);
+  // A popover sits in the top layer, so the toast stays visible above the open inspector.
+  try {
+    if (!region.matches(":popover-open")) region.showPopover();
+  } catch {}
+  toastTimeout = setTimeout(() => {
+    region.replaceChildren();
+    try {
+      region.hidePopover();
+    } catch {}
+  }, 5500);
 }
 async function request(url, options = {}) {
   const controller = new AbortController(),
@@ -265,9 +299,11 @@ function updateConnection() {
       : state.stale
         ? "Showing last received state"
         : "No application data available";
-  $("#sync-status").textContent = syncTime
-    ? `Updated ${relative(syncTime)}`
-    : "TriNetra operator workspace";
+  $("#sync-status").textContent = !syncTime
+    ? "TriNetra operator workspace"
+    : online && !sample
+      ? `Live · updated ${duration(Date.now() / 1000 - syncTime)} ago`
+      : `Updated ${relative(syncTime)}`;
   $("#finding-count").textContent = state.connected
     ? number(state.data.items.filter(open).length)
     : "—";
@@ -638,7 +674,7 @@ function renderReviews() {
           .sort(priority)
           .map(
             (it) =>
-              `<article class="review-item"><div class="review-item-top"><span class="mono" style="color:var(--muted)">TN-${escape(it.id)}</span>${badge(it.severity)}${itemBadge(it)}</div><h3><button class="finding-open" data-action="open-item" data-id="${escape(it.id)}" style="font-size:14px">${escape(it.title)}</button></h3><p>${escape(it.explanation || "The reviewer is assessing the proposed patch. Review reasoning will appear when available.")}</p><div class="review-item-footer"><span class="review-file">${icon("code")}${escape(it.changed_paths?.length ? `${it.changed_paths.length} file${it.changed_paths.length > 1 ? "s" : ""} changed` : "Patch details pending")}<span>· ${relative(it.updated || it.created)}</span></span><button class="button ${pending(it) ? "primary" : ""}" data-action="open-patch" data-id="${escape(it.id)}">Inspect patch ${icon("arrow")}</button></div></article>`,
+              `<article class="review-item"><div class="review-item-top"><span class="mono" style="color:var(--muted)">TN-${escape(it.id)}</span>${badge(it.severity)}${itemBadge(it)}</div><h3><button class="finding-open" data-action="open-item" data-id="${escape(it.id)}" style="font-size:14px">${escape(it.title)}</button></h3><p>${escape(it.explanation || it.review_reasoning || "The reviewer is assessing the proposed patch. Review reasoning will appear when available.")}</p><div class="review-item-footer"><span class="review-file">${icon("code")}${escape(it.changed_paths?.length ? `${it.changed_paths.length} file${it.changed_paths.length > 1 ? "s" : ""} changed` : "Patch details pending")}<span>· ${relative(it.updated || it.created)}</span></span><button class="button ${pending(it) ? "primary" : ""}" data-action="open-patch" data-id="${escape(it.id)}">Inspect patch ${icon("arrow")}</button></div></article>`,
           )
           .join("")
       : empty(
@@ -1480,7 +1516,7 @@ setInterval(() => {
     !state.loading
   )
     refresh({ silent: true });
-  updateConnection();
-}, 15000);
+}, 5000);
+setInterval(tickLive, 1000);
 route();
 refresh().then(route);

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import re
 import time
+from urllib.parse import unquote
 from dataclasses import dataclass, field
 
 # Substrings that strongly suggest an injection attempt in user input.
@@ -50,12 +51,13 @@ class SessionMemory:
     """Small sliding-window memory kept per session in the gateway."""
 
     login_failures: list[float] = field(default_factory=list)
-    seen_product_ids: set[int] = field(default_factory=set)
+    seen_product_ids: dict[int, float] = field(default_factory=dict)
     not_found_times: list[float] = field(default_factory=list)
 
     def prune(self, now: float, window: float = 60.0) -> None:
         self.login_failures = [t for t in self.login_failures if now - t < window]
         self.not_found_times = [t for t in self.not_found_times if now - t < window]
+        self.seen_product_ids = {k: v for k, v in self.seen_product_ids.items() if now - v < window}
 
 
 def score_request(
@@ -71,7 +73,7 @@ def score_request(
     now = time.time()
     mem.prune(now)
     hits: list[Hit] = []
-    blob = f"{path}?{query} {body}"
+    blob = unquote(unquote(f"{path}?{query} {body}"))
 
     # 1. Injection attempts in the URL or body.
     for rx in _INJECTION_RE:
@@ -94,7 +96,7 @@ def score_request(
     # 4. Object enumeration: sweeping many distinct product ids quickly.
     m = re.match(r"/products/(\d+)", path)
     if m:
-        mem.seen_product_ids.add(int(m.group(1)))
+        mem.seen_product_ids[int(m.group(1))] = now
         if len(mem.seen_product_ids) >= 12:
             hits.append(Hit(5.0, f"enumerated {len(mem.seen_product_ids)} product ids"))
 
