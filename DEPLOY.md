@@ -1,61 +1,31 @@
-# Deploy TriNetra (Vercel + Render)
+# TriNetra deploy (clean split)
 
-## What goes where
+| Role | Host | URL |
+|------|------|-----|
+| **Frontend** (landing + workspace UI) | **Vercel** | https://trinetra-bay.vercel.app |
+| **Backend** (FastAPI + Redis) | **Render** | https://trinetra-workspace.onrender.com |
 
-| Surface | Host | Why |
-|---------|------|-----|
-| Landing + sample workspace (`frontend/dist`) | **Vercel** | Static, fast, free HTTPS |
-| Live workspace API (`dashboard` + Redis) | **Render** | Docker + Key Value Redis |
-| Gateway / prod+shadow / orchestrator | **Local Docker Compose** | OpenResty + volumes + LLM keys |
+## How they connect
 
-Public demo URLs (live, linked):
+- Browser only opens **Vercel**.
+- Vercel `vercel.json` rewrites `/api/*` → Render.
+- Workspace calls `/api/workspace` same-origin; Vercel proxies that to Render.
+- Render has `SERVE_STATIC=0` so it is **API-only** (UI redirects to Vercel).
 
-- Front door (Vercel): https://trinetra-bay.vercel.app — static UI; `/api/*` proxies to Render
-- API + Redis (Render): https://trinetra-workspace.onrender.com
-- Workspace: https://trinetra-bay.vercel.app/workspace (live API via rewrite)
+## Demo URLs
 
-`ALLOWED_ORIGINS` on Render includes the Vercel production host so approve/rollback POSTs work.
+- App: https://trinetra-bay.vercel.app  
+- Workspace (sample): https://trinetra-bay.vercel.app/workspace?preview=1  
+- API health: https://trinetra-workspace.onrender.com/api/health  
 
-## 1. Vercel (static)
+## Redeploy
 
 ```powershell
+# Frontend
 cd frontend\dist
-vercel login          # once
 vercel --prod --yes
+
+# Backend: git push to GitHub (Render Blueprint auto-syncs) or Manual Deploy in dashboard
 ```
 
-Or from repo after linking:
-
-```powershell
-vercel link --yes
-vercel --prod --yes --cwd frontend/dist
-```
-
-Config: `frontend/dist/vercel.json` (clean URLs + `/workspace` rewrite).
-
-## 2. Render (workspace + Redis)
-
-1. Push this repo (includes `render.yaml` + `dashboard/Dockerfile.render`).
-2. [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint** → select the GitHub/GitLab repo.
-3. Apply Blueprint → creates `trinetra-redis` + `trinetra-workspace`.
-4. Wait for first deploy; open the service URL (health check `/`).
-
-Manual alternative without Blueprint: **New Web Service** → Docker → root dir `.` → Dockerfile `dashboard/Dockerfile.render`, add Redis and set `REDIS_URL`.
-
-## 3. Env (Render only)
-
-| Var | Source |
-|-----|--------|
-| `REDIS_URL` | From `trinetra-redis` connection string (Blueprint wires this) |
-| `PATCH_DIR` / `FORK_DIR` | `/tmp/...` on free tier (ephemeral) |
-
-LLM / gateway keys stay on the local Compose stack (`.env`), not on Vercel.
-
-## 4. Re-deploy
-
-```powershell
-# Static
-cd frontend\dist; vercel --prod --yes
-
-# Render rebuilds on git push to the linked branch, or Dashboard → Manual Deploy
-```
+Gateway / orchestrator / OpenResty stay on local Docker Compose — not on Vercel/Render.

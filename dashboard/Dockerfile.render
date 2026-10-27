@@ -1,4 +1,4 @@
-# Render-friendly image: landing + workspace API (same as local dashboard).
+# Render: TriNetra API only (UI is on Vercel).
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -8,12 +8,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY common /app/common
 COPY dashboard/server.py /app/dashboard/server.py
 COPY dashboard/static /app/dashboard/static
+# Landing copy kept for local SERVE_STATIC=1; cloud sets SERVE_STATIC=0.
 COPY frontend/dist /app/frontend/dist
 
-# Empty dirs for optional mounts / ephemeral disk
 RUN mkdir -p /app/patches /app/fork
 
 WORKDIR /app/dashboard
 ENV PORT=3000
+ENV SERVE_STATIC=0
+ENV PUBLIC_FRONTEND_URL=https://trinetra-bay.vercel.app
 EXPOSE 3000
 CMD uvicorn server:app --host 0.0.0.0 --port ${PORT:-3000}

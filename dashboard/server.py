@@ -35,6 +35,11 @@ ALLOWED_ORIGINS = {
     ).split(",")
     if o.strip()
 }
+# Cloud split: Vercel = UI, Render = API. Set SERVE_STATIC=0 on Render.
+SERVE_STATIC = os.environ.get("SERVE_STATIC", "1").strip().lower() not in {"0", "false", "no"}
+PUBLIC_FRONTEND_URL = os.environ.get(
+    "PUBLIC_FRONTEND_URL", "https://trinetra-bay.vercel.app"
+).rstrip("/")
 app = FastAPI(title="TriNetra workspace", docs_url="/api/docs", redoc_url=None)
 
 
@@ -76,10 +81,17 @@ async def redis_unavailable(_request: Request, _exc: RedisError):
     return JSONResponse({"detail": "The state store is unavailable. Check Redis."}, status_code=503)
 
 
+@app.get("/api/health")
+def health():
+    return {"ok": True, "service": "trinetra-api", "frontend": PUBLIC_FRONTEND_URL}
+
+
 @app.get("/")
 def index(request: Request):
-    # Preserve the original sample-console URL while giving the product a
-    # single entry point: landing page at / and operator workspace at /workspace/.
+    # Local Docker still serves the landing UI. On Render (SERVE_STATIC=0) this
+    # host is API-only — send browsers to the Vercel front door.
+    if not SERVE_STATIC:
+        return RedirectResponse(PUBLIC_FRONTEND_URL + "/")
     if "preview" in request.query_params:
         return RedirectResponse(f"/workspace/?{request.url.query}")
     return FileResponse(LANDING / "index.html")
@@ -245,7 +257,16 @@ def stream():
     return StreamingResponse(gen(), media_type="text/event-stream", headers={"X-Accel-Buffering": "no"})
 
 
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
-app.mount("/workspace", StaticFiles(directory=STATIC, html=True), name="workspace")
-# Keep this last so application/API routes take precedence over marketing assets.
-app.mount("/", StaticFiles(directory=LANDING, html=True), name="landing")
+if SERVE_STATIC:
+    app.mount("/static", StaticFiles(directory=STATIC), name="static")
+    app.mount("/workspace", StaticFiles(directory=STATIC, html=True), name="workspace")
+    # Keep this last so application/API routes take precedence over marketing assets.
+    app.mount("/", StaticFiles(directory=LANDING, html=True), name="landing")
+else:
+    @app.get("/workspace")
+    def workspace_ui_redirect():
+        return RedirectResponse(PUBLIC_FRONTEND_URL + "/workspace?preview=1")
+
+    @app.get("/workspace/")
+    def workspace_ui_redirect_slash():
+        return RedirectResponse(PUBLIC_FRONTEND_URL + "/workspace?preview=1")
