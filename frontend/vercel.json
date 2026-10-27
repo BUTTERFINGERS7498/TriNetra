@@ -11,14 +11,12 @@
       ]
     }
   ],
-  "redirects": [
-    { "source": "/workspace", "destination": "/workspace/", "permanent": false }
-  ],
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://trinetra-workspace.onrender.com/api/:path*"
     },
+    { "source": "/workspace", "destination": "/workspace/index.html" },
     { "source": "/workspace/", "destination": "/workspace/index.html" }
   ]
 }
