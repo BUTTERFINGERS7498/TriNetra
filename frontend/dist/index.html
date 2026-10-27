@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#040406">
+  <meta name="description" content="A third eye for your application. TriNetra diverts suspicious traffic into a shadow environment and turns the evidence into reviewed fixes.">
+  <title>TriNetra — A third eye for your application</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/guardian-midnight.png" as="image" fetchpriority="high">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="experience.css">
+  <link rel="stylesheet" href="agents.css">
+  <link rel="stylesheet" href="light.css">
+  <script src="app.js" defer></script>
+  <script src="experience.js" defer></script>
+  <script src="light.js" defer></script>
+</head>
+<body>
+  <div class="reading-progress" aria-hidden="true"><span></span></div>
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="mark" viewBox="0 0 32 38"><path d="M16 35V4M6 9v6c0 7 20 7 20 0V9M2 12l4-5 4 5M22 12l4-5 4 5M12 7l4-5 4 5" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="27" r="2.5" fill="currentColor"/></symbol>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="diagonal" viewBox="0 0 24 24"><path d="M6 18 18 6M6 6h12v12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2 6M20 4v7h-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  </svg>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <a class="wordmark" href="#" aria-label="TriNetra home"><svg class="brand-mark" aria-hidden="true"><use href="#mark"/></svg><span>TriNetra<span class="brand-period">.</span></span></a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="#product">Product</a><a href="#how-it-works">How it works</a><a href="#safeguards">Safeguards</a><button type="button" data-open-docs>Docs <span aria-hidden="true">↗</span></button>
+      </nav>
+      <a class="button button-small button-dark nav-cta" href="/workspace/" aria-label="Open workspace"><span><span class="nav-cta-prefix">Open </span>Workspace</span> <svg aria-hidden="true"><use href="#diagonal"/></svg></a>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav"><span></span><span></span></button>
+    </div>
+    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+      <a href="#product">Product</a><a href="#how-it-works">How it works</a><a href="#safeguards">Safeguards</a><a href="/workspace/">Open workspace</a><button type="button" data-open-docs>Documentation ↗</button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero section-container" id="product" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow hero-eyebrow"><span class="eye-glyph" aria-hidden="true"></span>AI DEFENSE FOR YOUR APPLICATION</div>
+        <h1 id="hero-title"><span>See the threat.</span><span>Change its</span><em>course.</em></h1>
+        <p class="hero-description">An AI defense layer that diverts suspicious traffic into a shadow environment—and turns what it observes into reviewed fixes.</p>
+        <div class="hero-actions"><a class="button button-dark" href="/workspace/">Open the workspace <svg aria-hidden="true"><use href="#arrow"/></svg></a><a class="watch-link" href="#how-it-works"><span class="play-icon" aria-hidden="true">▶</span>Watch it work</a></div>
+        <div class="hero-signal" aria-label="The three agent roles"><span class="signal-miniature" aria-hidden="true"><i></i><i></i><i></i></span><span>DETECT <b>→</b> FIX <b>→</b> REVIEW</span><span class="signal-rule" aria-hidden="true"></span></div>
+      </div>
+      <div class="hero-art">
+        <canvas class="sentinel-field" aria-hidden="true"></canvas>
+        <div class="sentinel-aura" aria-hidden="true"></div>
+        <div class="art-coordinate art-coordinate-top" aria-hidden="true">T N — 0 1 <span>THE SENTINEL</span></div>
+        <div class="sentinel-rig"><div class="sculpture-float"><div class="sculpture-frame"><img src="assets/guardian-midnight.png" width="1024" height="1536" alt="A graphite and titanium guardian holding a silver trident, lit in blue and violet with an illuminated third eye." fetchpriority="high"><div class="sentinel-material" aria-hidden="true"></div><svg class="sentinel-currents" viewBox="0 0 1024 1536" aria-hidden="true"><defs><linearGradient id="sentinel-current" x1="0" y1="1" x2="0" y2="0"><stop stop-color="#738cff"/><stop offset=".6" stop-color="#b2dfff"/><stop offset="1" stop-color="#e4eaff"/></linearGradient><filter id="current-bloom" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1536"><feGaussianBlur stdDeviation="4"/></filter></defs><g class="trident-circuit" fill="none" stroke="url(#sentinel-current)" stroke-linecap="round"><path class="current-bloom current-shaft" pathLength="100" d="M242 1257V584M243 510V428"/><path class="current-shaft" pathLength="100" d="M242 1257V584M243 510V428"/><path class="current-crown" pathLength="100" d="M252 428 253 22M249 357C220 319 134 326 140 249L180 84M257 357C296 319 372 323 365 248L329 88"/></g></svg><span class="sentinel-eye" aria-hidden="true"></span><span class="sentinel-eye-flare" aria-hidden="true"></span></div></div></div>
+        <div class="sentinel-caption"><span class="sentinel-pulse" aria-hidden="true"></span><span>THE SENTINEL <small>A symbol of watchful intelligence</small></span><button class="motion-toggle" type="button" id="motion-toggle" aria-pressed="true" aria-label="Pause ambient motion"><span class="motion-icon" aria-hidden="true"><i></i><i></i></span><span class="motion-label">Pause motion</span></button></div>
+        <div class="art-caption"><span class="caption-line"></span><span>Quietly watching.<br>Always considering the next move.</span></div>
+        <div class="art-coordinate art-coordinate-bottom" aria-hidden="true">OBSERVE / ISOLATE / RESOLVE</div>
+      </div>
+      <a class="scroll-cue" href="#how-it-works"><span class="scroll-cue-line"></span>THE DEFENSE, UNFOLDED <span aria-hidden="true">↓</span></a>
+    </section>
+
+    <div class="stack-strip section-container" aria-label="Project technologies">
+      <span class="strip-label">BUILT ON A FAMILIAR STACK</span>
+      <div class="stack-wordmarks"><span><svg viewBox="0 0 28 24" aria-hidden="true"><path d="M1 12h22c1 0 3-1 4-3 0 4-3 6-5 6-1 5-4 7-10 7S2 19 1 12Z" fill="currentColor"/><path d="M5 7h4v4H5zm5 0h4v4h-4zm5 0h4v4h-4zm-5-5h4v4h-4zm5 0h4v4h-4z" fill="currentColor"/></svg>Docker</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 4 9h10l4-9 3 11-12 9L0 14 3 3Z" fill="currentColor"/></svg>GitLab</span><span class="redis-wordmark"><svg viewBox="0 0 28 24" aria-hidden="true"><path d="m14 2 13 6-13 6L1 8l13-6Zm-13 11 13 6 13-6M1 18l13 6 13-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>Redis</span><span class="openresty-wordmark"><span aria-hidden="true">〈/〉</span>OpenResty</span></div>
+    </div>
+
+    <section class="shadow-section" id="how-it-works" aria-labelledby="shadow-title">
+      <div class="section-container">
+        <div class="section-heading shadow-heading">
+          <div><div class="eyebrow"><span class="section-index">01</span> A DIFFERENT APPROACH</div><h2 id="shadow-title">The threat takes<br>a different <em>path.</em></h2></div>
+          <p>Keep the real application in view. Give flagged sessions a shadow copy to explore—and your defense a place to learn.</p>
+        </div>
+        <div class="routing-demo" data-route="shadow">
+          <div class="demo-chrome"><span><span class="status-dot"></span> THE GATEWAY AT WORK</span><span class="demo-badge">INTERACTIVE DEMO</span></div>
+          <div class="route-scene">
+            <svg class="route-paths" viewBox="0 0 1000 310" preserveAspectRatio="none" aria-hidden="true"><path class="route-wire route-inbound" d="M195 155H475"/><path class="route-wire route-production" d="M510 155C660 155 620 68 810 68"/><path class="route-wire route-shadow" d="M510 155C660 155 620 242 810 242"/><path class="route-pulse route-pulse-production" d="M195 155H510C660 155 620 68 810 68"/><path class="route-pulse route-pulse-shadow" d="M195 155H510C660 155 620 242 810 242"/></svg>
+            <div class="incoming-node"><div class="node-caption">INCOMING TRAFFIC</div><div class="request-tag"><span class="mini-dot"></span>GET /products <span>200</span></div><div class="request-tag suspicious"><span class="mini-dot"></span>Unusual request <svg aria-hidden="true"><use href="#eye"/></svg></div><div class="request-tag"><span class="mini-dot"></span>POST /orders <span>201</span></div></div>
+            <div class="gateway-node"><div class="gateway-symbol"><svg aria-hidden="true"><use href="#mark"/></svg></div><span>TriNetra gateway</span><span class="gateway-sublabel">OBSERVE · SCORE · ROUTE</span></div>
+            <div class="destination-nodes">
+              <button class="route-target production-target" type="button" data-route-target="production" aria-pressed="false"><span class="destination-icon"><svg aria-hidden="true"><use href="#grid"/></svg></span><span><strong>Production</strong><small>The real application</small></span><span class="destination-status">NORMAL</span></button>
+              <button class="route-target shadow-target" type="button" data-route-target="shadow" aria-pressed="true"><span class="destination-icon"><svg aria-hidden="true"><use href="#eye"/></svg></span><span><strong>Shadow environment</strong><small>A separate application copy</small></span><span class="destination-status">DIVERTED</span></button>
+            </div>
+          </div>
+          <div class="demo-footer"><p id="route-description" aria-live="polite"><span class="inline-dot"></span>Flagged sessions move to shadow. Their activity becomes evidence for the detector.</p><button class="replay-button" type="button" id="replay-demo"><svg aria-hidden="true"><use href="#refresh"/></svg><span>Replay demo</span></button></div>
+        </div>
+        <div class="shadow-notes"><span><span class="note-number">01 /</span> Observe the activity</span><span><span class="note-number">02 /</span> Divert flagged sessions</span><span><span class="note-number">03 /</span> Learn from the evidence</span></div>
+      </div>
+    </section>
+
+    <section class="agents-section section-container" aria-labelledby="agents-title">
+      <figure id="third-eye" class="optical-study light-piece" data-light-scene aria-hidden="true">
+        <div class="optical-object"><div class="optical-halo"></div>
+        <img src="assets/optical-eye.png" width="2172" height="724" alt="" loading="lazy" decoding="async">
+        <svg class="optical-currents" viewBox="0 0 1200 400" fill="none"><defs><linearGradient id="optical-spectrum"><stop stop-color="#477fff" stop-opacity="0"/><stop offset=".35" stop-color="#87beff"/><stop offset=".55" stop-color="#e3eaff"/><stop offset=".8" stop-color="#b496ff"/><stop offset="1" stop-color="#9761ed" stop-opacity="0"/></linearGradient></defs><path class="light-current" pathLength="100" d="M42 190C220 178 245 244 380 149S572 30 670 78 832 242 1158 188"/><path class="light-current light-current-two" pathLength="100" d="M68 202C280 192 334 245 454 295S655 341 763 269 922 164 1135 206"/></svg>
+        <span class="optical-core"></span></div>
+        <figcaption><span><i></i> THE THIRD EYE</span><span>THREE PERSPECTIVES. ONE PURPOSE.</span></figcaption>
+      </figure>
+      <div class="section-heading"><div><div class="eyebrow"><span class="section-index">02</span> THREE EYES ON THE PROBLEM</div><h2 id="agents-title">Three AI agents.<br>One considered response.</h2></div><p>From a suspicious request to a proposed remedy. Explore how each role carries the evidence forward.</p></div>
+      <div class="agents-grid">
+        <article class="agent-card" data-role="detector">
+          <div class="agent-art detector-art">
+            <div class="agent-windowbar"><span class="window-file"><svg aria-hidden="true"><use href="#eye"/></svg>Request stream</span><span class="window-caption">SAMPLE</span></div>
+            <div class="signal-chart" aria-hidden="true"><svg viewBox="0 0 360 54" preserveAspectRatio="none"><path class="chart-baseline" d="M0 39H360"/><path class="chart-wave" d="M0 38H33L39 31 45 39H83L91 24 100 39H136L146 34 154 38H183L190 30 197 38H216L225 12 232 44 241 4 249 39H271L278 32 285 39H320L327 30 335 38H360"/><path class="chart-focus" d="M216 38 225 12 232 44 241 4 249 39H271"/></svg><span class="chart-pin"></span></div>
+            <div class="signal-requests"><div><span class="request-method">GET</span><span>/products</span><span class="request-code">200</span></div><div class="signal-selected"><span class="request-method">POST</span><span>/orders</span><span class="signal-tag">Flagged</span></div><div><span class="request-method">GET</span><span>/health</span><span class="request-code">200</span></div></div>
+            <div class="agent-windowfoot"><span class="artifact-dot"></span>Evidence attached<span>TRN-014 <svg aria-hidden="true"><use href="#arrow"/></svg></span></div>
+          </div>
+          <div class="agent-card-copy"><div class="agent-meta"><span>01 / DETECTOR</span><span>Observe</span></div><h3>Read between<br>the requests.</h3><p>Turns shadow traffic into a finding, with an endpoint, evidence, and a clear explanation of the weakness.</p>
+          </div>
+        </article>
+        <article class="agent-card" data-role="fixer">
+          <div class="agent-art fixer-art">
+            <div class="agent-windowbar"><span class="window-file"><svg aria-hidden="true"><use href="#code"/></svg>app.py</span><span class="diff-stat"><b>+3</b> −1</span></div>
+            <div class="source-diff" aria-label="Illustrative request validation patch"><div><span>18</span><code><b>def</b> create_order(data):</code></div><div class="diff-remove"><span>19</span><code>− qty = data.get("qty")</code></div><div class="diff-add"><span>19</span><code>+ qty = data.get("qty", 1)</code></div><div class="diff-add"><span>20</span><code>+ if qty &lt; 1:</code></div><div class="diff-add"><span>21</span><code>+   return invalid_input()</code></div><div><span>22</span><code>  return save_order(qty)</code></div></div>
+            <div class="agent-windowfoot"><svg aria-hidden="true"><use href="#code"/></svg>Focused on one file<span>Proposed</span></div>
+          </div>
+          <div class="agent-card-copy"><div class="agent-meta"><span>02 / FIXER</span><span>Propose</span></div><h3>A small change.<br>A stronger application.</h3><p>Reads source inside a bounded fork and proposes a focused change to existing files. The patch waits for review.</p>
+          </div>
+        </article>
+        <article class="agent-card" data-role="reviewer">
+          <div class="agent-art reviewer-art">
+            <div class="agent-windowbar"><span class="window-file"><svg aria-hidden="true"><use href="#shield"/></svg>Review gate</span><span class="window-caption">SAMPLE</span></div>
+            <div class="review-checklist"><div><span class="review-check"><svg aria-hidden="true"><use href="#check"/></svg></span><span>Scope<small>Within the source fork</small></span><span class="check-result">Bounded</span></div><div><span class="review-check"><svg aria-hidden="true"><use href="#check"/></svg></span><span>Safety<small>Static checks and model review</small></span><span class="check-result">Examined</span></div><div><span class="review-check"><svg aria-hidden="true"><use href="#check"/></svg></span><span>Correctness<small>Change and evidence considered</small></span><span class="check-result">Reviewed</span></div></div>
+            <div class="agent-windowfoot"><span class="artifact-dot"></span>A considered next step<span>Review <svg aria-hidden="true"><use href="#arrow"/></svg></span></div>
+          </div>
+          <div class="agent-card-copy"><div class="agent-meta"><span>03 / REVIEWER</span><span>Consider</span></div><h3>Trust is earned<br>at review.</h3><p>Examines correctness, scope, and safety. A patch can move forward—or return to the fixer with specific feedback.</p>
+          </div>
+        </article>
+      </div>
+      <div class="agent-explorer" data-agent="detector">
+        <div class="agent-explorer-top"><span>One signal. A considered response.</span><span class="trace-badge"><span></span>ILLUSTRATIVE TRACE</span></div>
+        <div class="agent-explorer-body">
+          <div class="agent-tabs" role="tablist" aria-label="Explore the AI agent roles" aria-orientation="vertical">
+            <button type="button" id="agent-tab-detector" role="tab" aria-controls="agent-trace-panel" aria-selected="true" data-agent-tab="detector"><span class="agent-tab-icon"><svg aria-hidden="true"><use href="#eye"/></svg></span><span class="agent-tab-label">Detector<small>Signal to finding</small></span><span class="agent-tab-number">01</span></button>
+            <button type="button" id="agent-tab-fixer" role="tab" aria-controls="agent-trace-panel" aria-selected="false" data-agent-tab="fixer" tabindex="-1"><span class="agent-tab-icon"><svg aria-hidden="true"><use href="#code"/></svg></span><span class="agent-tab-label">Fixer<small>Finding to proposal</small></span><span class="agent-tab-number">02</span></button>
+            <button type="button" id="agent-tab-reviewer" role="tab" aria-controls="agent-trace-panel" aria-selected="false" data-agent-tab="reviewer" tabindex="-1"><span class="agent-tab-icon"><svg aria-hidden="true"><use href="#shield"/></svg></span><span class="agent-tab-label">Reviewer<small>Proposal to decision</small></span><span class="agent-tab-number">03</span></button>
+            <div class="agent-tabs-note" aria-hidden="true"><svg aria-hidden="true"><use href="#mark"/></svg><span>Evidence moves forward.<br>Each role has its own job.</span></div>
+          </div>
+          <div class="agent-trace-panel" id="agent-trace-panel" role="tabpanel" tabindex="0" aria-labelledby="agent-tab-detector">
+            <div class="trace-story"><div class="trace-kicker" id="trace-kicker">SIGNAL → FINDING</div><h3 id="trace-title">A pattern becomes<br>a place to look.</h3><p id="trace-description" aria-live="polite">The detector examines shadow request metadata and records a finding with evidence, severity, and an affected endpoint.</p><div class="trace-story-rule" aria-hidden="true"><span></span><span></span><span></span></div></div>
+            <div class="trace-output"><div class="trace-output-header"><span class="trace-output-dot"></span><span id="trace-output-label">detector / observation</span><span class="trace-output-index" id="trace-output-index">01:03</span></div><div class="trace-artifact"><svg aria-hidden="true"><use href="#eye"/></svg><div><span id="trace-artifact-kind">Finding</span><strong id="trace-artifact-title">Request validation</strong></div><span class="trace-artifact-id">TRN-014</span></div><div class="trace-lines" id="trace-lines"><div><span>Source</span><strong>shadow.log</strong></div><div><span>Endpoint</span><strong>POST /orders</strong></div><div><span>Artifact</span><strong>Finding with evidence</strong></div></div><div class="trace-output-foot"><svg aria-hidden="true"><use href="#arrow"/></svg><span id="trace-next">Next: a focused patch proposal</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace-section" id="workspace" aria-labelledby="workspace-title">
+      <div class="section-container">
+        <div class="workspace-heading"><div class="eyebrow"><span class="section-index">03</span> THE BIG PICTURE, IN ONE PLACE</div><h2 id="workspace-title">Clarity at<br><em>every stage.</em></h2><p>Evidence. A focused change. A review decision.<br>See the whole story without losing the details.</p></div>
+        <div class="workspace-shell">
+          <aside class="workspace-sidebar" aria-label="Preview navigation"><div class="workspace-brand"><svg aria-hidden="true"><use href="#mark"/></svg>TriNetra<span>.</span></div><div class="project-label"><span class="project-avatar">d</span><span>demo-shop<small>Sample project</small></span><span class="project-chevron">⌄</span></div><div class="sidebar-label">WORKSPACE PREVIEW</div><button class="preview-nav is-active" type="button" data-preview-view="pipeline" aria-pressed="true"><svg aria-hidden="true"><use href="#grid"/></svg>Pipeline<span>1</span></button><button class="preview-nav" type="button" data-preview-view="patch" aria-pressed="false"><svg aria-hidden="true"><use href="#code"/></svg>Patch review</button><div class="sidebar-bottom"><span class="sidebar-avatar">TN</span><span>A third eye.<small>A clearer picture.</small></span></div></aside>
+          <div class="workspace-main">
+            <div class="workspace-topbar"><span>demo-shop <span class="breadcrumb-slash">/</span> <strong id="preview-breadcrumb">Pipeline</strong></span><span class="sample-data"><span></span>SAMPLE DATA</span></div>
+            <div class="workspace-content">
+              <div class="preview-title-row"><div><h3 id="preview-panel-title">The patch pipeline</h3><p id="preview-panel-description">A finding, with its whole journey in view.</p></div><span class="preview-count">1 sample finding</span></div>
+              <div id="pipeline-panel">
+                <div class="pipeline-scroll"><div class="pipeline-board" role="group" aria-label="Select a sample pipeline stage">
+                  <button class="pipeline-column" type="button" data-stage="detected" aria-pressed="false"><span class="column-title"><span class="stage-dot dot-detected"></span>Detected<span class="stage-count">0</span></span><span class="column-slot"></span></button>
+                  <button class="pipeline-column" type="button" data-stage="fixing" aria-pressed="false"><span class="column-title"><span class="stage-dot dot-fixing"></span>Fixing<span class="stage-count">0</span></span><span class="column-slot"></span></button>
+                  <button class="pipeline-column is-selected" type="button" data-stage="reviewing" aria-pressed="true"><span class="column-title"><span class="stage-dot dot-reviewing"></span>Reviewing<span class="stage-count">1</span></span><span class="column-slot"><span class="finding-card"><span class="finding-id">TRN-014 <span>↗</span></span><strong>Missing request validation</strong><span class="finding-file">demo_app / app.py</span><span class="finding-card-bottom"><span class="severity-pill">MEDIUM</span><span>1 file</span></span></span></span></button>
+                  <button class="pipeline-column" type="button" data-stage="deployed" aria-pressed="false"><span class="column-title"><span class="stage-dot dot-deployed"></span>Deployed<span class="stage-count">0</span></span><span class="column-slot"></span></button>
+                  <button class="pipeline-column" type="button" data-stage="rejected" aria-pressed="false"><span class="column-title"><span class="stage-dot dot-rejected"></span>Rejected<span class="stage-count">0</span></span><span class="column-slot"></span></button>
+                </div></div>
+                <div class="finding-detail"><div class="detail-icon"><svg aria-hidden="true"><use href="#shield"/></svg></div><div><span class="detail-label" id="stage-detail-label">AT THE REVIEW GATE</span><p id="stage-detail-description" aria-live="polite">The proposed change is being checked for correctness, scope, and safety.</p></div><button class="text-action" type="button" data-preview-view="patch">Inspect patch <svg aria-hidden="true"><use href="#arrow"/></svg></button></div>
+              </div>
+              <div class="patch-panel" id="patch-panel" hidden>
+                <div class="patch-view-header"><span><svg aria-hidden="true"><use href="#code"/></svg>demo_app/app.py</span><span>ILLUSTRATIVE PATCH</span></div>
+                <pre class="patch-code" aria-label="Illustrative validation patch"><code><span class="code-context">  def create_order(data):</span>
+<span class="code-deletion">−     qty = data.get("qty")</span>
+<span class="code-addition">+     qty = data.get("qty", 1)</span>
+<span class="code-addition">+     if type(qty) is not int or qty &lt; 1:</span>
+<span class="code-addition">+         return invalid_input("Check quantity")</span>
+<span class="code-context">      return save_order(qty)</span></code></pre>
+                <div class="patch-explanation"><svg aria-hidden="true"><use href="#eye"/></svg><span>Validate quantity before processing. This example illustrates the review experience; it is not an applied patch.</span></div>
+              </div>
+              <div class="preview-bottom"><span><svg aria-hidden="true"><use href="#eye"/></svg> Select a stage to explore the sample finding.</span><span>DESIGN PREVIEW / 01</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="workspace-disclaimer"><span class="inline-dot"></span>An interactive look at the workspace direction. Sample activity, no live system connected.</p>
+      </div>
+    </section>
+
+    <section class="safeguards-section section-container" id="safeguards" aria-labelledby="safeguards-title">
+      <div class="safeguards-copy"><div class="eyebrow"><span class="section-index">04</span> AUTONOMY, WITH BOUNDARIES</div><h2 id="safeguards-title">A watchful system.<br>A considered <em>fix.</em></h2><p class="section-description">The path from evidence to application deserves care. TriNetra puts boundaries around the work.</p><div class="safeguard-list"><div><span class="safeguard-number">01</span><div><h3>A bounded place to work</h3><p>The fixer proposes changes within the configured source fork, with existing-file restrictions by default.</p></div><svg aria-hidden="true"><use href="#diagonal"/></svg></div><div><span class="safeguard-number">02</span><div><h3>Checks before application</h3><p>Static scans and a separate review stage examine proposed changes for selected risks and scope.</p></div><svg aria-hidden="true"><use href="#diagonal"/></svg></div><div><span class="safeguard-number">03</span><div><h3>A deliberate deployment path</h3><p>Hot reload for the Python demo. Recorded operator-run rebuild commands for compiled services.</p></div><svg aria-hidden="true"><use href="#diagonal"/></svg></div></div></div>
+      <div class="boundary-art light-piece" data-light-scene role="img" aria-label="A conceptual luminous containment field around the configured source fork, with existing-file and path checks.">
+        <span class="boundary-top-label">A DEFINED SCOPE. A CLEAR BOUNDARY.</span>
+        <div class="containment-sculpture" aria-hidden="true"><img src="assets/containment-field.svg" width="640" height="500" alt="" loading="lazy"><div class="containment-aura"></div><svg class="containment-current" viewBox="0 0 640 500" fill="none"><path class="light-current" pathLength="100" d="M320 56C420 60 504 121 509 212L510 285C499 378 421 433 320 435 219 432 132 377 130 280L130 204C136 112 219 56 320 56Z"/><path class="light-current light-current-two" pathLength="100" d="M158 157C230 202 410 200 482 157M138 297C215 343 426 345 502 298"/></svg></div>
+        <div class="fork-cube" aria-hidden="true"><svg><use href="#code"/></svg><strong>fork/</strong><span>APPLICATION SOURCE</span></div><div class="boundary-check boundary-check-one" aria-hidden="true"><svg><use href="#check"/></svg>Existing files</div><div class="boundary-check boundary-check-two" aria-hidden="true"><svg><use href="#check"/></svg>Path checks</div><div class="boundary-bottom-label" aria-hidden="true"><span class="status-dot"></span> A place to propose. A gate to proceed.</div>
+      </div>
+    </section>
+
+    <section class="setup-section section-container" aria-labelledby="setup-title"><div><div class="eyebrow"><span class="section-index">05</span> A PLACE IN YOUR STACK</div><h2 id="setup-title">Your application.<br>An extra layer of <em>awareness.</em></h2></div><div class="setup-copy"><p>A gateway in front. A shadow copy alongside. A workflow that turns observations into proposed changes.</p><p class="setup-small">Start with the bundled demo. Explore the integration path for your application.</p><button class="text-action" type="button" data-open-docs>Explore the setup <svg aria-hidden="true"><use href="#diagonal"/></svg></button></div></section>
+
+    <section class="faq-section section-container" id="faq" aria-labelledby="faq-title"><div class="faq-heading"><div class="eyebrow">A LITTLE MORE CLARITY</div><h2 id="faq-title">Good questions.<br>Clear answers.</h2><p>Curiosity is part of good defense.</p></div><div class="faq-items">
+      <details><summary>What is the shadow environment?<span class="faq-plus" aria-hidden="true"></span></summary><p>A separate copy of the application that receives sessions flagged by the gateway. Its request logs give the detector evidence to analyze while the production application remains a separate environment.</p></details>
+      <details><summary>Does TriNetra attack my application?<span class="faq-plus" aria-hidden="true"></span></summary><p>No. TriNetra is a defensive system. It recognizes, logs, diverts, and analyzes suspicious activity, then proposes patches. The traffic illustration on this page is an inert visual demo.</p></details>
+      <details><summary>What happens when a patch is approved?<span class="faq-plus" aria-hidden="true"></span></summary><p>In the Python demo, approved files are copied into the deployed application for hot reload. In rebuild mode, the approved patch is written to the fork and a rebuild command is recorded for an operator to run.</p></details>
+      <details><summary>Can a person review changes before deployment?<span class="faq-plus" aria-hidden="true"></span></summary><p>Yes. The runtime has an optional human-approval setting that holds model-approved patches for an operator. The repository’s demo defaults to hands-off operation.</p></details>
+      <details><summary>Is the workspace preview connected to a live system?<span class="faq-plus" aria-hidden="true"></span></summary><p>The embedded illustration on this page uses sample data. <a href="/workspace/">Open the workspace</a> to inspect findings, proposed patches, sessions, and activity from your running TriNetra stack. If the application is not connected, the workspace offers a clearly labeled sample mode.</p></details>
+    </div></section>
+
+    <section class="closing-section" aria-labelledby="closing-title"><div class="closing-atmosphere" aria-hidden="true"></div><div class="closing-orbit" aria-hidden="true"></div><div class="section-container closing-content"><div class="eyebrow">INTELLIGENCE, WITH A SENSE OF GUARDIANSHIP.</div><h2 id="closing-title">Give your application<br>a <em>third eye.</em></h2><p>Three AI agents. One considered defense.<br>A clearer path from signal to fix.</p><a class="button button-light" href="/workspace/">Open the workspace <svg aria-hidden="true"><use href="#arrow"/></svg></a></div><div class="closing-stage light-piece" data-light-scene aria-hidden="true"><div class="light-terrain"><img src="assets/light-terrain.svg" width="1200" height="400" alt="" loading="lazy"><svg viewBox="0 0 1200 400" fill="none"><path class="light-current" pathLength="100" d="M0 96C160 30 248 100 400 104S650 50 800 77 1050 140 1200 77"/><path class="light-current light-current-two" pathLength="100" d="M0 206C180 110 320 218 500 174S830 119 1200 200"/></svg></div><div class="light-beacon"></div><div class="closing-light-column"></div><div class="closing-totem"><svg><use href="#mark"/></svg></div><div class="closing-plinth"></div></div><div class="closing-stage-label" aria-hidden="true"><span>OBSERVE</span><span>ISOLATE</span><span>RESOLVE</span></div><span class="closing-coordinate" aria-hidden="true">TRINETRA / THE SILENT GUARDIAN</span></section>
+  </main>
+
+  <div class="footer-base"><footer class="site-footer section-container"><a class="wordmark" href="#" aria-label="TriNetra home"><svg class="brand-mark" aria-hidden="true"><use href="#mark"/></svg><span>TriNetra<span class="brand-period">.</span></span></a><span class="footer-description">Built to watch. Designed to defend.</span><div class="footer-links"><a href="/workspace/">Workspace</a><button type="button" data-open-docs>Documentation ↗</button><a href="#faq">FAQ</a><a href="#product">Back to top ↑</a></div><div class="footer-bottom"><span>© 2026 TriNetra. Original work, MIT licensed.</span><span>TRINETRA / MIDNIGHT EDITION</span></div></footer><div class="footer-echo" aria-hidden="true">TriNetra<span>.</span></div></div>
+
+  <dialog class="docs-dialog" id="docs-dialog" aria-labelledby="docs-title"><div class="docs-dialog-header"><span class="eyebrow">TRINETRA / FIELD NOTES</span><button class="dialog-close" type="button" aria-label="Close documentation">×</button></div><h2 id="docs-title">A place to start.</h2><p>TriNetra sits in front of a web application, routes flagged sessions to a shadow copy, and uses what it observes to propose reviewed fixes.</p><div class="docs-steps"><div><span>01</span><h3>Run the demo stack</h3><p>The repository includes Docker Compose configurations for the bundled shop API and an optional crAPI target.</p></div><div><span>02</span><h3>Watch the defense</h3><p>The gateway shares scores and routing state through Redis. The detector reads the shadow request log.</p></div><div><span>03</span><h3>Follow the finding</h3><p>The fixer proposes a patch. Static checks and a reviewer examine it before the configured deployment step.</p></div></div><div class="docs-footnote">This page is a design prototype. Product scenes use sample data. For environment-specific setup and operating limits, read README.md, AGENT.md, and PATCH.md in the project repository.</div><button class="button button-dark docs-done" type="button">Back to exploring <svg aria-hidden="true"><use href="#arrow"/></svg></button></dialog>
+</body>
+</html>

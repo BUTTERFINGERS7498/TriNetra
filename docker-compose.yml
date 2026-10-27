@@ -74,6 +74,9 @@ services:
       dockerfile: dashboard/Dockerfile
     environment:
       REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./patches:/app/patches:ro
+      - ./fork:/app/fork:ro
     ports:
       - "3000:3000"
     depends_on: [redis]

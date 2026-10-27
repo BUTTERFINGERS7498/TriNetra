@@ -1,0 +1,14 @@
+{
+  "name": "trinetra-workspace-checks",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Development checks for the buildless TriNetra workspace",
+  "scripts": {
+    "test": "node --test tests/workspace.test.cjs"
+  },
+  "devDependencies": {
+    "css-tree": "3.2.1",
+    "jsdom": "30.1.3"
+  }
+}

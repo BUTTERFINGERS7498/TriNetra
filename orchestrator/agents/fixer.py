@@ -190,10 +190,14 @@ def handle(item_id: str) -> dict | None:
     patch_path = PATCH_DIR / f"item-{item_id}.json"
     safe_files = []
     for f in patch["files"]:
-        if _safe_path(f["path"], must_exist=not ALLOW_NEW_FILES) is None:
+        source_path = _safe_path(f["path"], must_exist=not ALLOW_NEW_FILES)
+        if source_path is None:
             store.emit("fixing", item_id=item_id,
                        msg=f"rejected path {f['path']} (out of sandbox or new file)")
             continue
+        # Retain the inspected baseline for review after deployment changes the fork.
+        if source_path.is_file():
+            f["original_contents"] = source_path.read_text(encoding="utf-8", errors="replace")
         safe_files.append(f)
 
     if not safe_files:

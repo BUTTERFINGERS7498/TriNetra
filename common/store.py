@@ -32,7 +32,7 @@ _client: redis.Redis | None = None
 def client() -> redis.Redis:
     global _client
     if _client is None:
-        kwargs: dict[str, Any] = {"decode_responses": True}
+        kwargs: dict[str, Any] = {"decode_responses": True, "socket_connect_timeout": 3}
         if REDIS_PASSWORD:
             kwargs["password"] = REDIS_PASSWORD
         _client = redis.from_url(REDIS_URL, **kwargs)
@@ -154,6 +154,9 @@ def iter_live() -> Iterable[dict[str, Any]]:
     """Yield events as they are published (used by the dashboard SSE)."""
     pubsub = client().pubsub()
     pubsub.subscribe("events:live")
-    for message in pubsub.listen():
-        if message.get("type") == "message":
-            yield json.loads(message["data"])
+    try:
+        for message in pubsub.listen():
+            if message.get("type") == "message":
+                yield json.loads(message["data"])
+    finally:
+        pubsub.close()

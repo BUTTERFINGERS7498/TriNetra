@@ -5,7 +5,9 @@ COPY dashboard/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY common /app/common
-COPY dashboard /app/dashboard
+COPY dashboard/server.py /app/dashboard/server.py
+COPY dashboard/static /app/dashboard/static
+COPY frontend/dist /app/frontend/dist
 WORKDIR /app/dashboard
 
 EXPOSE 3000
