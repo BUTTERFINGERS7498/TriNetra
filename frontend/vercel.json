@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
-  "name": "trinetra",
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
@@ -11,20 +9,16 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
     }
+  ],
+  "redirects": [
+    { "source": "/workspace", "destination": "/workspace/", "permanent": false }
   ],
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://trinetra-workspace.onrender.com/api/:path*"
     },
-    { "source": "/workspace", "destination": "/workspace/index.html" },
     { "source": "/workspace/", "destination": "/workspace/index.html" }
   ]
 }
