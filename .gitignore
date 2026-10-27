@@ -14,3 +14,6 @@ dashboard/node_modules/
 crapi/upstream/
 crapi/fork/
 
+
+# local stack runtime (scripts/dev_local.py)
+.dev/
