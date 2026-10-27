@@ -1,0 +1,197 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "How TriNetra runs",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": ".archify/workflow-trinetra-loops-20261024-183500/trinetra-loops.html"
+  },
+  "lanes": [
+    { "id": "traffic", "label": "Traffic" },
+    { "id": "loopa", "label": "Loop A · local Docker" },
+    { "id": "loopb", "label": "Loop B · GitLab", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "arrive", "label": "Arrive", "fromCol": 0, "toCol": 1 },
+    { "id": "defend", "label": "Divert and detect", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "close", "label": "Patch and triage", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    {
+      "id": "local_loop",
+      "label": "Works end to end",
+      "lane": "loopa",
+      "fromCol": 2,
+      "toCol": 5,
+      "variant": "emphasis"
+    },
+    {
+      "id": "gitlab_loop",
+      "label": "Triage works, patch does not",
+      "lane": "loopb",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "security"
+    }
+  ],
+  "mainPath": ["visitor", "gateway", "decoy", "detector", "fixer", "reviewer", "deploy"],
+  "nodes": [
+    {
+      "id": "visitor",
+      "lane": "traffic",
+      "col": 0,
+      "type": "external",
+      "label": "Visitor",
+      "sublabel": "real user or attacker"
+    },
+    {
+      "id": "gateway",
+      "lane": "traffic",
+      "col": 1,
+      "type": "security",
+      "label": "Gateway :8080",
+      "sublabel": "score session and IP",
+      "tag": "verified"
+    },
+    {
+      "id": "production",
+      "lane": "traffic",
+      "col": 2,
+      "type": "frontend",
+      "label": "Production",
+      "sublabel": "untouched below 15",
+      "tag": "verified"
+    },
+    {
+      "id": "decoy",
+      "lane": "loopa",
+      "col": 2,
+      "type": "backend",
+      "label": "Shadow decoy",
+      "sublabel": "sticky for session and IP",
+      "tag": "verified"
+    },
+    {
+      "id": "detector",
+      "lane": "loopa",
+      "col": 3,
+      "type": "backend",
+      "label": "Detector",
+      "sublabel": "every 20s, logs are data",
+      "tag": "verified"
+    },
+    {
+      "id": "fixer",
+      "lane": "loopa",
+      "col": 4,
+      "type": "backend",
+      "label": "Fixer",
+      "sublabel": "existing files in FORK_DIR",
+      "tag": "verified",
+      "yOffset": -72
+    },
+    {
+      "id": "reviewer",
+      "lane": "loopa",
+      "col": 4,
+      "type": "security",
+      "label": "Reviewer",
+      "sublabel": "other model + static scan",
+      "tag": "verified",
+      "yOffset": 72
+    },
+    {
+      "id": "deploy",
+      "lane": "loopa",
+      "col": 5,
+      "type": "backend",
+      "label": "Deploy",
+      "sublabel": "hot reload, or record rebuild",
+      "tag": "verified"
+    },
+    {
+      "id": "finding",
+      "lane": "loopb",
+      "col": 4,
+      "type": "messagebus",
+      "label": "Finding issue",
+      "sublabel": "class, endpoint, severity",
+      "tag": "the join",
+      "yOffset": -72
+    },
+    {
+      "id": "pipeline",
+      "lane": "loopb",
+      "col": 4,
+      "type": "cloud",
+      "label": "CI pipeline",
+      "sublabel": "nine stages, 11/11 green",
+      "tag": "verified",
+      "yOffset": 72
+    },
+    {
+      "id": "assess",
+      "lane": "loopb",
+      "col": 5,
+      "type": "backend",
+      "label": "Assess",
+      "sublabel": "note on the issue",
+      "tag": "verified",
+      "yOffset": -72
+    },
+    {
+      "id": "blocked",
+      "lane": "loopb",
+      "col": 5,
+      "type": "security",
+      "label": "Patch and MR",
+      "sublabel": "no repository tools",
+      "tag": "blocked",
+      "yOffset": 72
+    }
+  ],
+  "edges": [
+    { "id": "arrive", "from": "visitor", "to": "gateway" },
+    { "id": "pass", "from": "gateway", "to": "production", "label": "under 15", "role": "branch" },
+    { "id": "divert", "from": "gateway", "to": "decoy", "label": "≥ 15 or honeypot", "variant": "emphasis" },
+    { "id": "read-log", "from": "decoy", "to": "detector", "label": "shadow.log" },
+    { "id": "to-fix", "from": "detector", "to": "fixer", "label": "weakness" },
+    { "id": "to-review", "from": "fixer", "to": "reviewer", "label": "patch" },
+    { "id": "reject", "from": "reviewer", "to": "fixer", "label": "rejected", "variant": "security", "role": "error" },
+    { "id": "ship", "from": "reviewer", "to": "deploy", "label": "approved", "variant": "emphasis" },
+    { "id": "handoff", "from": "detector", "to": "finding", "label": "handoff", "role": "branch" },
+    { "id": "open-issue", "from": "pipeline", "to": "finding", "label": "FINDING_TITLE" },
+    { "id": "start-flow", "from": "finding", "to": "assess", "label": "issue created", "variant": "emphasis" },
+    { "id": "cannot-patch", "from": "assess", "to": "blocked", "label": "steps 2–3", "variant": "security", "role": "error" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Verified on the demo app",
+      "items": [
+        "Attack scored 162. A normal user scored 0 and stayed on production.",
+        "Findings: SQL injection on /products/{id}, sensitive data on /.env.",
+        "One patch was rejected, then an approved patch was hot-reloaded. Tests stayed 10/10."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Blocked after triage",
+      "items": [
+        "Duo flow TriNetra Defender starts when a work item is created. That is the only human step.",
+        "Assess posts the note. Patch and the merge request stop: the trigger session cannot read or edit the repo.",
+        "Session 10002374 had get issue, add note, and create merge request only."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Where the loops meet",
+      "items": [
+        "The finding issue joins them. Paste a detector finding, or let CI open it with FINDING_TITLE.",
+        "CI and auto-merge are already green, with required approvals at 0.",
+        "They connect fully only when a flow agent can reach the repository."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "e43bbd16-f4e7-456f-a38b-7ac8ab987c2f",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "C:\\Users\\Sarvagya Sharma\\Desktop\\Project\\.archify\\workflow-trinetra-loops-20261024-183500\\candidate.json",
+  "output": "C:\\Users\\Sarvagya Sharma\\Desktop\\Project\\.archify\\workflow-trinetra-loops-20261024-183500\\trinetra-loops.html",
+  "specification": {
+    "sha256": "e12d62312c6d5dbf272728548dde6e8dd2d106f950b1501e334be9b08692d1f1",
+    "bytes": 5999
+  },
+  "artifact": {
+    "sha256": "0779210da8ef632e044f1f04601b39ffd7d1ff5c73d64f678b0cbd0a5bb15fe1",
+    "bytes": 834452
+  }
+}

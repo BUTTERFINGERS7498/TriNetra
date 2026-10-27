@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "workflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\Sarvagya Sharma\\Desktop\\Project\\.archify\\workflow-trinetra-loops-20261024-183500\\candidate.json",
+    "sha256": "e12d62312c6d5dbf272728548dde6e8dd2d106f950b1501e334be9b08692d1f1",
+    "bytes": 5999
+  },
+  "artifact": {
+    "path": "C:\\Users\\Sarvagya Sharma\\Desktop\\Project\\.archify\\workflow-trinetra-loops-20261024-183500\\trinetra-loops.html",
+    "sha256": "0779210da8ef632e044f1f04601b39ffd7d1ff5c73d64f678b0cbd0a5bb15fe1",
+    "bytes": 834452
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\Sarvagya Sharma\\Desktop\\Project\\.archify\\workflow-trinetra-loops-20261024-183500\\trinetra-loops.finalize.json",
+    "summaryReceipt": "C:\\Users\\Sarvagya Sharma\\Desktop\\Project\\.archify\\workflow-trinetra-loops-20261024-183500\\trinetra-loops.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\Sarvagya Sharma\\Desktop\\Project\\.archify\\workflow-trinetra-loops-20261024-183500\\trinetra-loops.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-24T13:04:04.607Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6317,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}
