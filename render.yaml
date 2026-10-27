@@ -19,6 +19,8 @@ services:
         value: /tmp/patches
       - key: FORK_DIR
         value: /tmp/fork
+      - key: ALLOWED_ORIGINS
+        value: https://trinetra-bay.vercel.app,https://trinetra-qwlbvfj1h-sarvagya-sharmas-projects.vercel.app
 
   - type: keyvalue
     name: trinetra-redis

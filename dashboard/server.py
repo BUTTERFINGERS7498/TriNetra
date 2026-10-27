@@ -26,18 +26,46 @@ LANDING = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 PATCH_DIR = Path(os.environ.get("PATCH_DIR", "/app/patches")).resolve()
 FORK_DIR = Path(os.environ.get("FORK_DIR", "/app/fork")).resolve()
 MAX_ARTIFACT_BYTES = 1_000_000
+# Comma-separated browser origins allowed to POST (Vercel front door → this API).
+ALLOWED_ORIGINS = {
+    o.strip().rstrip("/")
+    for o in os.environ.get(
+        "ALLOWED_ORIGINS",
+        "https://trinetra-bay.vercel.app,https://trinetra-qwlbvfj1h-sarvagya-sharmas-projects.vercel.app",
+    ).split(",")
+    if o.strip()
+}
 app = FastAPI(title="TriNetra workspace", docs_url="/api/docs", redoc_url=None)
+
+
+def _origin_allowed(origin: str | None, request: Request) -> bool:
+    if not origin:
+        return True
+    normalized = origin.rstrip("/")
+    if normalized == str(request.base_url).rstrip("/"):
+        return True
+    if normalized in ALLOWED_ORIGINS:
+        return True
+    # Preview / alias deploys: *.vercel.app for this project name
+    if normalized.endswith(".vercel.app") and "trinetra" in normalized:
+        return True
+    return False
 
 
 @app.middleware("http")
 async def workspace_headers(request: Request, call_next):
     if request.method == "POST":
         origin = request.headers.get("origin")
-        if origin and origin.rstrip("/") != str(request.base_url).rstrip("/"):
+        if origin and not _origin_allowed(origin, request):
             return JSONResponse({"detail": "Cross-origin actions are not allowed"}, status_code=403)
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "same-origin"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    origin = request.headers.get("origin")
+    if origin and _origin_allowed(origin, request):
+        response.headers["Access-Control-Allow-Origin"] = origin.rstrip("/")
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Vary"] = "Origin"
     if request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store"
     return response
