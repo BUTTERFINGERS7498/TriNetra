@@ -8,10 +8,11 @@
 | Live workspace API (`dashboard` + Redis) | **Render** | Docker + Key Value Redis |
 | Gateway / prod+shadow / orchestrator | **Local Docker Compose** | OpenResty + volumes + LLM keys |
 
-Public demo URLs after deploy:
+Public demo URLs (live):
 
-- Marketing: `https://<project>.vercel.app`
-- Workspace API: `https://trinetra-workspace.onrender.com` (name from `render.yaml`)
+- Marketing (Vercel): https://trinetra-bay.vercel.app
+- Workspace + API (Render): https://trinetra-workspace.onrender.com
+- Sample workspace: https://trinetra-bay.vercel.app/workspace (or Render `/workspace/?preview=1`)
 
 ## 1. Vercel (static)
 
